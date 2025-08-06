@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4">Event Tickets</h2>
+
+
+<div class="text text-muted mb-4">
+  Total records: {{ total }}
+</div>
+<table class="table table-bordered table-striped">
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Encsoft URL</th>
+      <th>CVV</th>
+      <th>Created At</th>
+      <th>Updated At</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for event in events %}
+    <tr>
+      <td>{{ loop.index + offset }}</td>
+      <td>{{ event.name }}</td>
+      <td>{{ event.encsoft_url }}</td>
+      <td>{{ event.cvv }}</td>
+      <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>{{ event.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>{{ event.status }}</td>
+      <td>
+        <a href="#" class="btn btn-sm btn-success">Buy</a>
+        <a href="#" class="btn btn-sm btn-danger">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="d-flex justify-contents align-items-center my-4">
+  <nav>
+    <ul class="pagination mb-0">
+      {% if offset >= limit %}
+      <li class="page-item">
+        <a class="page-link" href="/dashboard?offset={{ offset - limit }}&limit={{ limit }}">Previous</a>
+      </li>
+      {% endif %}
+      {% if events|length == limit %}
+      <li class="page-item">
+        <a class="page-link" href="/dashboard?offset={{ offset + limit }}&limit={{ limit }}">Next</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}

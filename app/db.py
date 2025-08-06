@@ -17,10 +17,15 @@ Base = declarative_base()
 class Event(Base):
     __tablename__ = "events"
 
+    STATUS_NEW = "new"
+    STATUS_SCHEDULED = "scheduled"
+    STATUS_FAILED = "failed"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     encsoft_url = Column(String)
     cvv = Column(String)
+    status = Column(String)
     created_at = Column(DateTime, default=dt.utcnow)
     updated_at = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow)
 

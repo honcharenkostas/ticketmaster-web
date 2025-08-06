@@ -1,9 +1,11 @@
 import os
 import logging
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Query
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from .db import Event, get_db
 from .schemas import EventCreate
+from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 
 
@@ -19,12 +21,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/dashboard")
-def dashboard(db: Session = Depends(get_db)):
-    logger.info("test")
-    return "todo"
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    total = db.query(Event).count()
+    events = db.query(Event).offset(offset).limit(limit).all()
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "events": events,
+            "limit": limit,
+            "offset": offset,
+            "total": total,
+        },
+    )
 
 @app.get("/events")
 def get_events(limit: int, offset: int, db: Session = Depends(get_db)):
