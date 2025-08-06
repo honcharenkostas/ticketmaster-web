@@ -1,8 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, constr, HttpUrl
 
 
 class EventCreate(BaseModel):
-    name: str
-    encsoft_url: str
-    cvv: str
+    name: constr(min_length=1, max_length=200)
+    encsoft_url: HttpUrl
+    cvv: constr(pattern=r'^\d{3}$')

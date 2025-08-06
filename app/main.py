@@ -32,7 +32,16 @@ def get_events(limit: int, offset: int, db: Session = Depends(get_db)):
 
 @app.post("/event")
 def create_event(request: EventCreate, db: Session = Depends(get_db)):
-    return {}
+    event = Event(
+        name=request.name,
+        encsoft_url=str(request.encsoft_url),
+        cvv=request.cvv,
+    )
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+
+    return {"id": event.id}
 
 @app.post("/buy-ticket/{event_id}")
 def buy_ticket(event_id: int, db: Session = Depends(get_db)):
