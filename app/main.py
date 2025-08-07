@@ -8,6 +8,7 @@ from .db import Event, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
 import requests
+from datetime import datetime
 from dotenv import load_dotenv
 
 
@@ -55,16 +56,69 @@ def dashboard(
 
 @app.post("/event")
 def create_event(request: EventCreate, db: Session = Depends(get_db)):
-    event = Event(
-        name=request.name,
-        encsoft_url=str(request.encsoft_url),
-        cvv=request.cvv,
-    )
-    db.add(event)
-    db.commit()
-    db.refresh(event)
+    try:
+        data = dict()
+        try:
+            for row in request.fields:
+                name = row.get("name")
+                val = row.get("value")
+                if name and val:
+                    data[name] = val
+        except Exception as e:
+            logger.error(e)
+            return {"error": "Invalid request fields"}, 500
 
-    return {"id": event.id}
+        required = {
+            "Event ID",
+            "Account",
+            "Section",
+            "Row",
+            "Price",
+            "Full price",
+            "Amount",
+            "Expiration",
+            "Full checkout"
+        }
+        for k in required:
+            if not data.get(k):
+                error = f"Field {k} is required"
+                logger.error(error)
+                return {"error": error}, 500
+
+        event_name = "XXX XXXXXXX XXXXXX" 
+        bot_email = "test@gmail.com"
+        cvv = "123"
+        price_plus_fees = 0.0
+        try:
+            expire_at = datetime.fromtimestamp(int(data["Expiration"].replace("<t:", "").replace(":R>", "")))
+        except Exception as e:
+            logger.error(e)
+            return {"error": "Invalid Expiration field"}, 500
+
+        event = Event(
+            event_id=data["Event ID"],
+            event_name=event_name,
+            bot_email=bot_email,
+            section=data["Section"],
+            row=data["Row"],
+            price=float(data["Price"]),
+            amount=int(data["Amount"]),
+            full_price=float(data["Full price"]),
+            price_plus_fees=price_plus_fees,
+            expire_at=expire_at,
+            encsoft_url=data["Full checkout"],
+            cvv=cvv,
+            status=Event.STATUS_NEW
+        )
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+
+        return {"id": event.id}
+    except Exception as e:
+        logger.error(e)
+
+    return {"Internal server error"}, 500
 
 @app.post("/buy-ticket/{event_id}")
 def buy_ticket(event_id: int, db: Session = Depends(get_db)):

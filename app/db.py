@@ -2,7 +2,7 @@
 import os
 from datetime import datetime as dt
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 
@@ -22,7 +22,16 @@ class Event(Base):
     STATUS_FAILED = "failed"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
+    event_id = Column(String)
+    event_name = Column(String)
+    bot_email = Column(String)
+    section = Column(String)
+    row = Column(String)
+    price = Column(Float)
+    amount = Column(Integer)
+    full_price = Column(Float)
+    price_plus_fees = Column(Float)
+    expire_at = DateTime()
     encsoft_url = Column(String)
     cvv = Column(String)
     status = Column(String)
