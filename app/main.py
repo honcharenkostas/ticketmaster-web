@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI, Depends, Request, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 from .db import Event, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
@@ -36,6 +36,7 @@ def dashboard(
     total = db.query(Event).filter(Event.is_active==True).count()
     events = db.query(Event) \
         .filter(Event.is_active==True) \
+        .order_by(asc(Event.id)) \
         .offset(offset) \
         .limit(limit) \
         .all()
@@ -45,6 +46,7 @@ def dashboard(
         {
             "request": request,
             "events": events,
+            "Event": Event,
             "limit": limit,
             "offset": offset,
             "total": total,

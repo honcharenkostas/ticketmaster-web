@@ -54,7 +54,13 @@
             </thead>
             <tbody>
                 {% for event in events %}
+                {% if event.status == Event.STATUS_SCHEDULED %}
+                <tr class="table-success">
+                {% elif event.status == Event.STATUS_FAILED %}
+                <tr class="table-danger">
+                {% else %}
                 <tr>
+                {% endif %}
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.name }}</td> <!-- Event Name -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">test@gmail.com</td> <!-- Account -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">10</td> <!-- Section -->
@@ -66,7 +72,11 @@
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">7m 15s</td> <!-- Expire in -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable"> {{ event.status }}</td> <!-- Status -->
                     <td class="d-flex justify-content-center align-items-center gap-2">
+                        {% if event.status == Event.STATUS_NEW %}
                         <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                        {% else %}
+                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                        {% endif %}
                         <button data-event-id="{{ event.id }}" class="btn btn-sm btn-danger delete-event">Delete</a>
                     </td>
                 </tr>
