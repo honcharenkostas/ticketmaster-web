@@ -86,9 +86,15 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
                 return {"error": error}, 500
 
         event_name = "XXX XXXXXXX XXXXXX" 
-        bot_email = "test@gmail.com"
         cvv = "123"
-        price_plus_fees = 0.0
+        full_price = round(float(data["Full price"]), 2)
+        amount = int(data["Amount"])
+        if not full_price or not amount:
+            error = "Invalid full price or amount"
+            logger(error)
+            return {"error": error}, 500
+        price_plus_fees = round(full_price / amount, 2)
+
         try:
             expire_at = datetime.fromtimestamp(int(data["Expiration"].replace("<t:", "").replace(":R>", "")))
         except Exception as e:
@@ -98,7 +104,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
         event = Event(
             event_id=data["Event ID"],
             event_name=event_name,
-            bot_email=bot_email,
+            bot_email=data["Account"],
             section=data["Section"],
             row=data["Row"],
             price=float(data["Price"]),
