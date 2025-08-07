@@ -2,7 +2,7 @@
 import os
 from datetime import datetime as dt
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 
@@ -26,6 +26,7 @@ class Event(Base):
     encsoft_url = Column(String)
     cvv = Column(String)
     status = Column(String)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=dt.utcnow)
     updated_at = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow)
 

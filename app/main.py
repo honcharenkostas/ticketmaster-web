@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI, Depends, Request, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from .db import Event, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
@@ -31,7 +32,13 @@ def dashboard(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
-    total = db.query(Event).count()
+    total = db.query(Event).filter(Event.is_active==True).count()
+    events = db.query(Event) \
+        .filter(Event.is_active==True) \
+        .order_by(desc(Event.created_at)) \
+        .offset(offset) \
+        .limit(limit) \
+        .all()
     events = db.query(Event).offset(offset).limit(limit).all()
     return templates.TemplateResponse(
         "dashboard.html",
@@ -43,10 +50,6 @@ def dashboard(
             "total": total,
         },
     )
-
-@app.get("/events")
-def get_events(limit: int, offset: int, db: Session = Depends(get_db)):
-    return []
 
 @app.post("/event")
 def create_event(request: EventCreate, db: Session = Depends(get_db)):
@@ -67,4 +70,15 @@ def buy_ticket(event_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/event/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    return {}
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        return {}
+    try:
+        event.is_active = False
+        db.add(event)
+        db.commit()
+        return {"success": True}
+    except Exception as e:
+        logger.error(e)
+        db.rollback()
+        return {}, 500

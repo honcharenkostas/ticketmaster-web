@@ -7,52 +7,102 @@
 <div class="text text-muted mb-4">
   Total records: {{ total }}
 </div>
-<table class="table table-bordered table-striped">
-  <thead class="table-light">
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Encsoft URL</th>
-      <th>CVV</th>
-      <th>Created At</th>
-      <th>Updated At</th>
-      <th>Status</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for event in events %}
-    <tr>
-      <td>{{ loop.index + offset }}</td>
-      <td>{{ event.name }}</td>
-      <td>{{ event.encsoft_url }}</td>
-      <td>{{ event.cvv }}</td>
-      <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-      <td>{{ event.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-      <td>{{ event.status }}</td>
-      <td>
-        <a href="#" class="btn btn-sm btn-success">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
-        <a href="#" class="btn btn-sm btn-danger">Delete</a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
 
-<div class="d-flex justify-contents align-items-center my-4">
-  <nav>
-    <ul class="pagination mb-0">
-      {% if offset >= limit %}
-      <li class="page-item">
-        <a class="page-link" href="/dashboard?offset={{ offset - limit }}&limit={{ limit }}">Previous</a>
-      </li>
-      {% endif %}
-      {% if events|length == limit %}
-      <li class="page-item">
-        <a class="page-link" href="/dashboard?offset={{ offset + limit }}&limit={{ limit }}">Next</a>
-      </li>
-      {% endif %}
-    </ul>
-  </nav>
+{% if request.query_params.get('error') %}
+<div class="alert alert-danger" role="alert">
+  {{ request.query_params.get('error') }}
 </div>
+{% endif %}
+<div id="errors" class="alert alert-danger d-none" role="alert"></div>
+
+{% if events %}
+    <div id="table-loader" class="text-center my-3 d-none">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div id="table-container">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Encsoft URL</th>
+                <th>CVV</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Status</th>
+                <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                <td>{{ event.id }}</td>
+                <td>{{ event.name }}</td>
+                <td>{{ event.encsoft_url }}</td>
+                <td>{{ event.cvv }}</td>
+                <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ event.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td class="event-status">{{ event.status }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-success">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                    <a href="#" data-event-id="{{ event.id }}" class="btn btn-sm btn-danger delete-event">Delete</a>
+                </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="d-flex justify-contents align-items-center my-4">
+            <nav>
+                <ul class="pagination mb-0">
+                {% if offset >= limit %}
+                <li class="page-item">
+                    <a class="page-link" href="/dashboard?offset={{ offset - limit }}&limit={{ limit }}">Previous</a>
+                </li>
+                {% endif %}
+                {% if events|length == limit %}
+                <li class="page-item">
+                    <a class="page-link" href="/dashboard?offset={{ offset + limit }}&limit={{ limit }}">Next</a>
+                </li>
+                {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".delete-event").forEach(btn => {
+            btn.addEventListener("click", async function (e) {
+                e.preventDefault();
+                const row = btn.closest("tr");
+                const eventId = btn.dataset.eventId;
+
+                document.getElementById("table-container").classList.add("d-none");
+                document.getElementById("table-loader").classList.remove("d-none");
+
+                try {
+                    const response = await fetch(`/event/${eventId}`, {method: "DELETE"});
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        location.reload();
+                    } else {
+                        console.log(data)
+                        document.getElementById("table-container").classList.remove("d-none");
+                        document.getElementById("table-loader").classList.add("d-none");
+                        document.getElementById("errors").classList.remove("d-none");
+                        document.getElementById("errors").innerText = "Internal server error";
+                    }
+                } catch (err) {
+                    document.getElementById("errors").classList.remove("d-none");
+                    document.getElementById("errors").innerText = err.message || "Delete request failed";
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
