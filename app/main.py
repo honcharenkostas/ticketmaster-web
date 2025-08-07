@@ -7,6 +7,7 @@ from sqlalchemy import desc
 from .db import Event, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
+import requests
 from dotenv import load_dotenv
 
 
@@ -29,17 +30,16 @@ templates = Jinja2Templates(directory="templates")
 def dashboard(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
     total = db.query(Event).filter(Event.is_active==True).count()
     events = db.query(Event) \
         .filter(Event.is_active==True) \
-        .order_by(desc(Event.created_at)) \
         .offset(offset) \
         .limit(limit) \
         .all()
-    events = db.query(Event).offset(offset).limit(limit).all()
+    
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -66,7 +66,37 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
 
 @app.post("/buy-ticket/{event_id}")
 def buy_ticket(event_id: int, db: Session = Depends(get_db)):
-    return {}
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        return {}
+    
+    if not event.encsoft_url or not event.cvv:
+        return {"error": "Event checkout url or CVV is empty"}, 500
+    
+    try:
+        resp = requests.post(
+            url=os.getenv("CHECKOUT_BOT_API_URL"),
+            json={
+                "encsoft_url": event.encsoft_url,
+                "cvv": event.cvv,
+            }
+        )
+
+        if resp.status_code == 200:
+            event.status = Event.STATUS_SCHEDULED
+            db.add(event)
+            db.commit()
+
+            return {}
+    except Exception as e:
+        logger.error(e)
+        db.rollback()
+
+        event.status = Event.STATUS_FAILED
+        db.add(event)
+        db.commit()
+
+    return {}, 500
 
 @app.delete("/event/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(get_db)):
