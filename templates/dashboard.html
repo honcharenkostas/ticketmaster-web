@@ -55,7 +55,7 @@
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.amount }}</td> <!-- Amount -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.full_price }}</td> <!-- Full Price -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.expire_at }}</td> <!-- Expire in -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable countdown">{{ event.expire_at }}</td> <!-- Expire in -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable"> {{ event.status }}</td> <!-- Status -->
                     <td class="d-flex justify-content-center align-items-center gap-2">
                         {% if event.status == Event.STATUS_NEW %}
@@ -176,5 +176,40 @@
             });
         });
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        function parseTime(t) {
+            const parts = t.split(':').map(Number);
+            return parts.length === 3
+            ? parts[0]*3600 + parts[1]*60 + parts[2]
+            : parts[0]*60 + parts[1];
+        }
+        function formatTime(s) {
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+        }
+
+        document.querySelectorAll('td.countdown').forEach(td => {
+            if (td.textContent.trim().toLowerCase() === 'expired') return;
+
+            let seconds = parseTime(td.textContent.trim());
+            if (seconds <= 0) {
+            td.textContent = 'expired';
+            return;
+            }
+
+            const interval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                td.textContent = 'expired';
+                clearInterval(interval);
+            } else {
+                td.textContent = formatTime(seconds);
+            }
+            }, 5000);
+        });
+        });
 </script>
 {% endblock %}
