@@ -44,30 +44,34 @@ def expire_at(target_time: datetime) -> str:
 def dashboard(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    page: int = Query(1, ge=1),
 ):
-    total = db.query(Event).filter(Event.is_active==True).count()
-    _events = db.query(Event) \
-        .filter(Event.is_active==True) \
-        .order_by(asc(Event.id)) \
-        .offset(offset) \
-        .limit(limit) \
+    per_page = 20
+    total = db.query(Event).filter(Event.is_active == True).count()
+    offset = (page - 1) * per_page
+
+    _events = (
+        db.query(Event)
+        .filter(Event.is_active == True)
+        .order_by(asc(Event.id))
+        .offset(offset)
+        .limit(per_page)
         .all()
-    
+    )
+
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
         events.append(e)
-    
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
             "events": events,
             "Event": Event,
-            "limit": limit,
-            "offset": offset,
+            "page": page,
+            "per_page": per_page,
             "total": total,
         },
     )

@@ -78,22 +78,38 @@
             </tbody>
         </table>
 
-        <div class="d-flex justify-contents align-items-center my-4">
-            <nav>
-                <ul class="pagination mb-0">
-                {% if offset >= limit %}
-                <li class="page-item">
-                    <a class="page-link" href="/dashboard?offset={{ offset - limit }}&limit={{ limit }}">Previous</a>
+        <nav aria-label="Page navigation">
+            {% set total_pages = (total // per_page) + (1 if total % per_page else 0) %}
+
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page == 1 %}active{% endif %}">
+                    <a class="page-link" href="?page=1">1</a>
+                </li>
+
+                {% if page > 4 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+                {% set start = page - 2 if page - 2 > 2 else 2 %}
+                {% set end = page + 2 if page + 2 < total_pages - 1 else total_pages - 1 %}
+
+                {% for p in range(start, end + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+
+                {% if page < total_pages - 3 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+                {% if total_pages > 1 %}
+                <li class="page-item {% if page == total_pages %}active{% endif %}">
+                    <a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a>
                 </li>
                 {% endif %}
-                {% if events|length == limit %}
-                <li class="page-item">
-                    <a class="page-link" href="/dashboard?offset={{ offset + limit }}&limit={{ limit }}">Next</a>
-                </li>
-                {% endif %}
-                </ul>
+            </ul>
             </nav>
-        </div>
     </div>
 {% endif %}
 
