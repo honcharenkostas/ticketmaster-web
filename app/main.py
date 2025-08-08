@@ -1,7 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI, Depends, Request, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
 from .db import Event, EventDetails, BotAccount, get_db
@@ -84,7 +84,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
                     data[name] = val
         except Exception as e:
             logger.error(e)
-            return {"error": "Invalid request fields"}, 500
+            return JSONResponse({"error":  "Invalid request fields"}, 500)
 
         required = {
             "Event ID",
@@ -101,7 +101,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
             if not data.get(k):
                 error = f"Field {k} is required"
                 logger.error(error)
-                return {"error": error}, 500
+                return JSONResponse({"error": error}, 500)
 
         event_details = db.query(EventDetails).filter(EventDetails.event_id == data["Event ID"]).first()
         event_name = event_details.event_name if event_details else None
@@ -114,7 +114,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
         if not full_price or not amount:
             error = "Invalid full price or amount"
             logger(error)
-            return {"error": error}, 500
+            return JSONResponse({"error": error}, 500)
         price_plus_fees = round(full_price / amount, 2)
 
         expire_at = None
@@ -122,7 +122,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
             expire_at = datetime.fromtimestamp(int(data["Expiration"].replace("<t:", "").replace(":R>", "")))
         except Exception as e:
             logger.error(e)
-            return {"error": "Invalid Expiration field"}, 500
+            return JSONResponse({"error": "Internal server error"}, 500)
 
         event = Event(
             event_id=data["Event ID"],
@@ -147,16 +147,16 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(e)
 
-    return {"Internal server error"}, 500
+    return JSONResponse({"error": "Internal server error"}, 500)
 
 @app.post("/buy-ticket/{event_id}")
 def buy_ticket(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         return {}
-    
+
     if not event.encsoft_url or not event.cvv:
-        return {"error": "Event checkout url or CVV is empty"}, 500
+        return JSONResponse({"error": "Event checkout url or CVV is empty"}, 500)
     
     try:
         resp = requests.post(
@@ -166,7 +166,6 @@ def buy_ticket(event_id: int, db: Session = Depends(get_db)):
                 "cvv": event.cvv,
             }
         )
-
         if resp.status_code == 200:
             event.status = Event.STATUS_SCHEDULED
             db.add(event)
@@ -181,7 +180,7 @@ def buy_ticket(event_id: int, db: Session = Depends(get_db)):
         db.add(event)
         db.commit()
 
-    return {}, 500
+    return JSONResponse({"error":  "Internal server error"}, 500)
 
 @app.delete("/event/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(get_db)):
@@ -196,4 +195,4 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(e)
         db.rollback()
-        return {}, 500
+        return JSONResponse({"error":  "Internal server error"}, 500)

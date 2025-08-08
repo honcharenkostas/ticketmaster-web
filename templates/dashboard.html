@@ -108,7 +108,7 @@
                 document.getElementById("table-loader").classList.remove("d-none");
 
                 try {
-                    const response = await fetch(`/buy-ticket/${eventId}`, {method: "POST"});
+                    const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
                     const data = await response.json();
 
                     if (response.ok) {
@@ -117,7 +117,7 @@
                         document.getElementById("table-container").classList.remove("d-none");
                         document.getElementById("table-loader").classList.add("d-none");
                         document.getElementById("errors").classList.remove("d-none");
-                        document.getElementById("errors").innerText = "Internal server error";
+                        document.getElementById("errors").innerText = data.error || "Internal server error";
                     }
                 } catch (err) {
                     document.getElementById("errors").classList.remove("d-none");
