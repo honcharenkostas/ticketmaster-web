@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data   # persistent data folder
+    environment:
+      - PYTHONUNBUFFERED=1
