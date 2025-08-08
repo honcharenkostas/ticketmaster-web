@@ -21,22 +21,6 @@
     </div>
     <div id="table-container">
         <table class="table table-bordered">
-            <!--
-            Event ID -- Pulls from API
-            Event Name -- This will pull from a separate table that we need. First column Event ID. Second Column is event name	
-            Account -- Pulls from API
-            Section -- Pulls from API
-            Row	# -- Pulls from API
-            Price -- Pulls from API
-            Amount -- Pulls from API
-            Full Price	-- Pulls from API
-            Price + Fees -- This is calculated from Full price divided by amount
-            CVV	-- This will pull from a separate table that we need. First column Account. Second Column is CVV
-            Checkout Link	-- Pulls from API
-            Time to Expire -- This is a 8 minute timer that starts when the data is inputted into the dashboard
-            Buy / Delete Button -- Live buttons. List these to the left of API status column
-            API Status -- This should show Success when sent, scheduled when in process, or failure if API didnt send. Fill cells green when they are success, yellow when scheduled, and red when failed
-            -->
             <thead class="table-light align-middle">
                 <tr class="text-center">
                     <th>Event Name</th>
@@ -55,21 +39,21 @@
             <tbody>
                 {% for event in events %}
                 {% if event.status == Event.STATUS_SCHEDULED %}
-                <tr class="table-success">
+                <tr class="table-success text-center">
                 {% elif event.status == Event.STATUS_FAILED %}
-                <tr class="table-danger">
+                <tr class="table-danger text-center">
                 {% else %}
-                <tr>
+                <tr class="text-center">
                 {% endif %}
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.name }}</td> <!-- Event Name -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">test@gmail.com</td> <!-- Account -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">10</td> <!-- Section -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">15</td> <!-- Row	# -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">100</td> <!-- Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">5</td> <!-- Amount -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">120</td> <!-- Full Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">125</td> <!-- Price + Fees -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">7m 15s</td> <!-- Expire in -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.event_name }}</td> <!-- Event Name -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.bot_email }}</td> <!-- Account -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.section }}</td> <!-- Section -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.row }}</td> <!-- Row	# -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.price }}</td> <!-- Price -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.amount }}</td> <!-- Amount -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.full_price }}</td> <!-- Full Price -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.expire_at }}</td> <!-- Expire in -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable"> {{ event.status }}</td> <!-- Status -->
                     <td class="d-flex justify-content-center align-items-center gap-2">
                         {% if event.status == Event.STATUS_NEW %}
@@ -82,6 +66,8 @@
                 </tr>
                 <tr class="collapse" id="details-{{event.id}}">
                     <td colspan="11">
+                        &nbsp;&nbsp;&nbsp;&nbsp;Event ID: {{event.event_id}}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;Created At: {{event.created_at.strftime("%Y-%m-%d %H:%M:%S")}}<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="{{ event.encsoft_url }}" target="_blank">{{ event.encsoft_url }}</a><br>
                         &nbsp;&nbsp;&nbsp;&nbsp;CVV: {{ event.cvv }}
                     </td>

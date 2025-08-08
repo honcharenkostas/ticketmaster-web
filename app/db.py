@@ -31,13 +31,25 @@ class Event(Base):
     amount = Column(Integer)
     full_price = Column(Float)
     price_plus_fees = Column(Float)
-    expire_at = DateTime()
+    expire_at = Column(DateTime)
     encsoft_url = Column(String)
     cvv = Column(String)
     status = Column(String)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=dt.utcnow)
     updated_at = Column(DateTime, default=dt.utcnow, onupdate=dt.utcnow)
+
+class EventDetails(Base):
+    __tablename__ = "event_details"
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String)
+    event_name = Column(String)
+
+class BotAccount(Base):
+    __tablename__ = "bot_accounts"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String)
+    cvv = Column(String)
 
 
 def get_db():

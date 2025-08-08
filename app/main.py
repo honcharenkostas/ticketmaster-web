@@ -4,7 +4,7 @@ from fastapi import FastAPI, Depends, Request, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
-from .db import Event, get_db
+from .db import Event, EventDetails, BotAccount, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
 import requests
@@ -27,6 +27,19 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 
+def expire_at(target_time: datetime) -> str:
+    now = datetime.now()
+    diff = target_time - now
+
+    if diff.total_seconds() <= 0:
+        return "expired"
+
+    hours, remainder = divmod(int(diff.total_seconds()), 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
     request: Request,
@@ -35,12 +48,17 @@ def dashboard(
     offset: int = Query(0, ge=0),
 ):
     total = db.query(Event).filter(Event.is_active==True).count()
-    events = db.query(Event) \
+    _events = db.query(Event) \
         .filter(Event.is_active==True) \
         .order_by(asc(Event.id)) \
         .offset(offset) \
         .limit(limit) \
         .all()
+    
+    events = []
+    for e in _events:
+        e.expire_at = expire_at(e.expire_at)
+        events.append(e)
     
     return templates.TemplateResponse(
         "dashboard.html",
@@ -85,8 +103,12 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
                 logger.error(error)
                 return {"error": error}, 500
 
-        event_name = "XXX XXXXXXX XXXXXX" 
-        cvv = "123"
+        event_details = db.query(EventDetails).filter(EventDetails.event_id == data["Event ID"]).first()
+        event_name = event_details.event_name if event_details else None
+
+        bot = db.query(BotAccount).filter(BotAccount.email == data["Account"]).first()
+        cvv = bot.cvv if bot else None
+
         full_price = round(float(data["Full price"]), 2)
         amount = int(data["Amount"])
         if not full_price or not amount:
@@ -95,6 +117,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
             return {"error": error}, 500
         price_plus_fees = round(full_price / amount, 2)
 
+        expire_at = None
         try:
             expire_at = datetime.fromtimestamp(int(data["Expiration"].replace("<t:", "").replace(":R>", "")))
         except Exception as e:
