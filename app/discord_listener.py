@@ -29,13 +29,13 @@ async def on_ready():
 
 @client.event
 async def on_message(msg):
-    if msg.channel.id == os.getenv("DISCORD_CHANNEL_ID") and not msg.author.bot:
+    if msg.channel.id == os.getenv("DISCORD_CHANNEL_ID"):
         logger.info(f"[{msg.author}] {msg.content}")
 
         # prepare data
         data = dict()
         try:
-            for row in msg["embeds"][0]["fields"]:
+            for row in msg.content["embeds"][0]["fields"]:
                 name = row.get("name")
                 val = row.get("value")
                 if name and val:
