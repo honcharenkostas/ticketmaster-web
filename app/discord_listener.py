@@ -2,7 +2,7 @@ import discord
 import os
 import logging
 from datetime import datetime
-from .db import Event, EventDetails, BotAccount, get_db
+from db import Event, EventDetails, BotAccount, get_db
 from dotenv import load_dotenv
 
 
