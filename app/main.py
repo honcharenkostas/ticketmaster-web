@@ -1,7 +1,8 @@
 import os
 import logging
+import math
 from fastapi import FastAPI, Depends, Request, Query
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
 from .db import Event, EventDetails, BotAccount, get_db
@@ -48,8 +49,12 @@ def dashboard(
 ):
     per_page = 10
     total = db.query(Event).filter(Event.is_active == True).count()
+    last_page = math.ceil(total / per_page)
+    if page > last_page:
+        url = str(request.url.include_query_params(page=last_page))
+        return RedirectResponse(url=url)
+    
     offset = (page - 1) * per_page
-
     _events = (
         db.query(Event)
         .filter(Event.is_active == True)
