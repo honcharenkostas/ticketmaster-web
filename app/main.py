@@ -156,7 +156,7 @@ def create_event(request: EventCreate, db: Session = Depends(get_db)):
 @app.post("/buy-ticket/{event_id}")
 def buy_ticket(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
-    if not event:
+    if not event or event.status != Event.STATUS_NEW: # prevent duplicated request from miltiple users
         return {}
 
     if not event.encsoft_url or not event.cvv:
