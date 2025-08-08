@@ -23,6 +23,7 @@
         <table class="table table-bordered">
             <thead class="table-light align-middle">
                 <tr class="text-center">
+                    <th>#</th>
                     <th>Event Name</th>
                     <th>Account</th>
                     <th>Section</th>
@@ -45,6 +46,7 @@
                 {% else %}
                 <tr class="text-center">
                 {% endif %}
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.id }}</td> <!-- id -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.event_name }}</td> <!-- Event Name -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.bot_email }}</td> <!-- Account -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.section }}</td> <!-- Section -->
