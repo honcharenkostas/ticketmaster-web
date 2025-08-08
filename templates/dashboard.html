@@ -181,14 +181,15 @@
         function parseTime(t) {
             const parts = t.split(':').map(Number);
             return parts.length === 3
-            ? parts[0]*3600 + parts[1]*60 + parts[2]
-            : parts[0]*60 + parts[1];
+            ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+            : parts[0] * 60 + parts[1];
         }
+
         function formatTime(s) {
             const h = Math.floor(s / 3600);
             const m = Math.floor((s % 3600) / 60);
             const sec = s % 60;
-            return `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+            return `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
 
         document.querySelectorAll('td.countdown').forEach(td => {
@@ -201,15 +202,15 @@
             }
 
             const interval = setInterval(() => {
-            seconds--;
+            seconds -= 5;  // subtract 5 seconds each tick
             if (seconds <= 0) {
                 td.textContent = 'expired';
                 clearInterval(interval);
             } else {
                 td.textContent = formatTime(seconds);
             }
-            }, 5000);
+            }, 5000);  // 5 seconds interval
         });
-        });
+    });
 </script>
 {% endblock %}
