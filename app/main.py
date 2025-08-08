@@ -46,7 +46,7 @@ def dashboard(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
 ):
-    per_page = 20
+    per_page = 10
     total = db.query(Event).filter(Event.is_active == True).count()
     offset = (page - 1) * per_page
 

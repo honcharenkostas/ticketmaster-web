@@ -40,11 +40,11 @@
             <tbody>
                 {% for event in events %}
                 {% if event.status == Event.STATUS_SCHEDULED %}
-                <tr class="table-success text-center">
+                <tr class="table-success text-center fade show">
                 {% elif event.status == Event.STATUS_FAILED %}
-                <tr class="table-danger text-center">
+                <tr class="table-danger text-center fade show">
                 {% else %}
-                <tr class="text-center">
+                <tr class="text-center fade show">
                 {% endif %}
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.id }}</td> <!-- id -->
                     <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.event_name }}</td> <!-- Event Name -->
@@ -122,8 +122,8 @@
                 const row = btn.closest("tr");
                 const eventId = btn.dataset.eventId;
 
-                document.getElementById("table-container").classList.add("d-none");
-                document.getElementById("table-loader").classList.remove("d-none");
+                // document.getElementById("table-container").classList.add("d-none");
+                // document.getElementById("table-loader").classList.remove("d-none");
 
                 try {
                     const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
@@ -152,8 +152,8 @@
                 const row = btn.closest("tr");
                 const eventId = btn.dataset.eventId;
 
-                document.getElementById("table-container").classList.add("d-none");
-                document.getElementById("table-loader").classList.remove("d-none");
+                // document.getElementById("table-container").classList.add("d-none");
+                // document.getElementById("table-loader").classList.remove("d-none");
 
                 try {
                     const response = await fetch(`/event/${eventId}`, {method: "DELETE"});
@@ -210,6 +210,29 @@
                 td.textContent = formatTime(seconds);
             }
             }, 5000);  // 5 seconds interval
+        });
+    });
+
+    document.querySelectorAll('.delete-event').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tr = btn.closest('tr');
+            if (!tr) return;
+
+            const height = tr.offsetHeight + 'px';
+            tr.style.height = height;
+            tr.style.transition = 'opacity 1s ease, height 1s ease, padding 1s ease';
+
+            requestAnimationFrame(() => {
+            tr.style.opacity = '0';
+            tr.style.height = '0';
+            tr.style.paddingTop = '0';
+            tr.style.paddingBottom = '0';
+            tr.style.border = '0';
+            });
+
+            setTimeout(() => {
+            tr.style.display = 'none';
+            }, 2500);
         });
     });
 </script>
