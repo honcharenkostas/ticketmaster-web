@@ -20,6 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 db = SessionLocal()
 ids = set()
+start_time = datetime.now()
 
 
 def run():
@@ -38,7 +39,12 @@ def run():
             messages = response.json()
             for msg in messages:
                 id = msg.get("id")
-                if not id:
+                try:
+                    posted_at = datetime.fromisoformat(msg.get("timestamp"))
+                except:
+                    posted_at = None
+
+                if not id or not posted_at or posted_at.timestamp < start_time.timestamp:
                     continue
 
                 if id in ids:
