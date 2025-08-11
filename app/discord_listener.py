@@ -117,6 +117,6 @@ try:
     while True:
         logger.info("Get messages...")
         run()
-        time.sleep(1)
+        time.sleep(3)
 except KeyboardInterrupt:
     logger.info("Shutting down ...")
