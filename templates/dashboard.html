@@ -14,13 +14,8 @@
 <div id="errors" class="alert alert-danger d-none" role="alert"></div>
 
 {% if events %}
-    <div id="table-loader" class="text-center my-3 d-none">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
     <div id="table-container">
-        <table class="table table-bordered">
+        <table class="table table-bordered>
             <thead class="table-light align-middle">
                 <tr class="text-center">
                     <th>#</th>
@@ -43,27 +38,29 @@
                 <tr class="table-success text-center fade show">
                 {% elif event.status == Event.STATUS_FAILED %}
                 <tr class="table-danger text-center fade show">
+                {% elif event.expire_at == "expired" %}
+                <tr class="table-secondary text-center fade show">
                 {% else %}
                 <tr class="text-center fade show">
                 {% endif %}
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.id }}</td> <!-- id -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.event_name }}</td> <!-- Event Name -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.bot_email }}</td> <!-- Account -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.section }}</td> <!-- Section -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.row }}</td> <!-- Row	# -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.price }}</td> <!-- Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.amount }}</td> <!-- Amount -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.full_price }}</td> <!-- Full Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable countdown">{{ event.expire_at }}</td> <!-- Expire in -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable"> {{ event.status }}</td> <!-- Status -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.id }}</td> <!-- id -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.event_name }}</td> <!-- Event Name -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.bot_email }}</td> <!-- Account -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.section }}</td> <!-- Section -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.row }}</td> <!-- Row	# -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.price }}</td> <!-- Price -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.amount }}</td> <!-- Amount -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.full_price }}</td> <!-- Full Price -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable countdown px-0 py-0 align-middle">{{ event.expire_at }}</td> <!-- Expire in -->
+                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle"> {{ event.status }}</td> <!-- Status -->
                     <td class="d-flex justify-content-center align-items-center gap-2">
-                        {% if event.status == Event.STATUS_NEW %}
-                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                        {% if event.status == Event.STATUS_NEW and event.expire_at != "expired" %}
+                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
                         {% else %}
-                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
                         {% endif %}
-                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-danger delete-event">Delete</a>
+                        <!-- <button data-event-id="{{ event.id }}" class="btn btn-sm btn-danger delete-event">Delete</a> -->
                     </td>
                 </tr>
                 <tr class="collapse" id="details-{{event.id}}">
@@ -121,9 +118,6 @@
                 const row = btn.closest("tr");
                 const eventId = btn.dataset.eventId;
 
-                // document.getElementById("table-container").classList.add("d-none");
-                // document.getElementById("table-loader").classList.remove("d-none");
-
                 try {
                     const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
                     const data = await response.json();
@@ -150,9 +144,6 @@
                 e.preventDefault();
                 const row = btn.closest("tr");
                 const eventId = btn.dataset.eventId;
-
-                // document.getElementById("table-container").classList.add("d-none");
-                // document.getElementById("table-loader").classList.remove("d-none");
 
                 try {
                     const response = await fetch(`/event/${eventId}`, {method: "DELETE"});

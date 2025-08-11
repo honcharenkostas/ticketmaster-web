@@ -47,7 +47,7 @@ def dashboard(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
 ):
-    per_page = 10
+    per_page = 25
     total = db.query(Event).filter(Event.is_active == True).count()
     last_page = math.ceil(total / per_page)
     if page > last_page and last_page != 0:
