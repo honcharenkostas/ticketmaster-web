@@ -44,7 +44,7 @@ def run():
                 except:
                     posted_at = None
 
-                if not id or not posted_at or posted_at.timestamp < start_time.timestamp:
+                if not id or not posted_at or posted_at.timestamp() < start_time.timestamp():
                     continue
 
                 if id in ids:
