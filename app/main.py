@@ -50,7 +50,7 @@ def dashboard(
     per_page = 10
     total = db.query(Event).filter(Event.is_active == True).count()
     last_page = math.ceil(total / per_page)
-    if page > last_page:
+    if page > last_page and last_page != 0:
         url = str(request.url.include_query_params(page=last_page))
         return RedirectResponse(url=url)
     
