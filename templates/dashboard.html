@@ -131,6 +131,29 @@
             $(location).attr("href", "/dashboard?page=1&event_id=" + val);
         });
 
+        document.querySelectorAll(".buy-ticket").forEach(btn => {
+            btn.addEventListener("click", async function (e) {
+                e.preventDefault();
+                const row = btn.closest("tr");
+                const eventId = btn.dataset.eventId;
+
+                try {
+                    const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        document.getElementById("errors").classList.remove("d-none");
+                        document.getElementById("errors").innerText = data.error || "Internal server error";
+                    }
+                } catch (err) {
+                    document.getElementById("errors").classList.remove("d-none");
+                    document.getElementById("errors").innerText = "Scheduling buying ticket failed";
+                    document.getElementById("table-container").classList.remove("d-none");
+                }
+            });
+        });
 
         function loadPage(page) {
             let event_id = $("#event_id").attr("value")

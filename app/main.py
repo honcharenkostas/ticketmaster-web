@@ -98,7 +98,7 @@ def dashboard(
     if event_id and event_id != "Any":
         query = query.filter(Event.event_id == event_id)
     total = query.count()
-    
+
     query = db.query(Event) \
         .filter(Event.is_active == True)
     if event_id and event_id != "Any":
@@ -229,6 +229,7 @@ def buy_ticket(event_id: int, db: Session = Depends(get_db)):
                 "cvv": event.cvv,
             }
         )
+
         if resp.status_code == 200:
             event.status = Event.STATUS_SCHEDULED
             db.add(event)
