@@ -15,7 +15,7 @@
     <option value="3">Event 3</option>
   </select>
   
-  <div class="ms-auto">Total: 10</div>
+  <div class="ms-auto">Total: <span id="events_total"></span></div>
 
 </div>
 
@@ -59,6 +59,8 @@
 
     function loadPage(page) {
         $.getJSON("/items/", { page: page, event_id:  event_id}, function(data) {
+            $("#events_total").html(data.total)
+
             currentPage = data.page;
             // Populate table
             let rows = "";
