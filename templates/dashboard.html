@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h5>Tickets</h2>
+<h5>Tickets</h5>
 <div class="d-flex align-items-center text text-muted mb-4">
   <input type="hidden" id="page" value=1>
   <input type="hidden" id="event_id" value="any">
@@ -137,10 +137,6 @@
     setInterval(() => {
         loadPage(currentPage);
     }, 5000);
-
-    // TODO #1: 
-    // 1. send requests to /events in loop every 5sec
-    // 2. re-build the table
 
     // TODO #2:
     // 1. implement pagination block (including event_id, page)

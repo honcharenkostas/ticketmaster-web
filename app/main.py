@@ -89,7 +89,6 @@ def dashboard(
     event_id: str = Query(...)
 ):
     per_page = 25
-    total = db.query(Event).filter(Event.is_active == True).count()
     offset = (page - 1) * per_page
     _events = (
         db.query(Event)
