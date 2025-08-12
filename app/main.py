@@ -34,7 +34,7 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
-PER_PAGE = 3
+PER_PAGE = 25
 
 
 def expire_at(target_time: datetime) -> str:
