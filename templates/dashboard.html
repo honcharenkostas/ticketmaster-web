@@ -189,6 +189,12 @@
                     } else {
                         $("#event_" + event.id).attr("class", "text-center fade show");
                     }
+
+                    if (event.status == "new" && event.expire_at != "expired") {
+                        $("button[data-event-id=" + event.id + "]").prop("disabled", false);
+                    } else {
+                        $("button[data-event-id=" + event.id + "]").prop("disabled", true);
+                    }
                 });
             });
         }
