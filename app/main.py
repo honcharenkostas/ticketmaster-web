@@ -54,14 +54,15 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
     per_page = 25
     total = db.query(Event).filter(Event.is_active == True).count()
     offset = (page - 1) * per_page
-    _events = (
-        db.query(Event)
+    query = db.query(Event) \
         .filter(Event.is_active == True)
-        .order_by(asc(Event.id))
-        .offset(offset)
-        .limit(per_page)
+    if event_id and event_id != "Any":
+        query = query.filter(Event.event_id == event_id)
+        
+    _events = query.order_by(asc(Event.id)) \
+        .offset(offset) \
+        .limit(per_page)  \
         .all()
-    )
 
     events = []
     for e in _events:
@@ -90,23 +91,32 @@ def dashboard(
 ):
     per_page = 25
     offset = (page - 1) * per_page
-    _events = (
-        db.query(Event)
+    query = db.query(Event) \
         .filter(Event.is_active == True)
-        .order_by(asc(Event.id))
-        .offset(offset)
-        .limit(per_page)
+    if event_id and event_id != "Any":
+        query = query.filter(Event.event_id == event_id)
+        
+    _events = query.order_by(asc(Event.id)) \
+        .offset(offset) \
+        .limit(per_page)  \
         .all()
-    )
 
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
         events.append(e)
 
+    unique_events = (
+        db.query(Event)
+        .distinct(Event.event_name)
+        .order_by(asc(Event.event_name))
+        .all()
+    )
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
+            "unique_events": unique_events,
             "events": events,
             "page": page,
             "event_id": event_id,

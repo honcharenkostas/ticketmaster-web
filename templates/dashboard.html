@@ -3,16 +3,16 @@
 {% block content %}
 <h5>Tickets</h5>
 <div class="d-flex align-items-center text text-muted mb-4">
-  <input type="hidden" id="page" value=1>
-  <input type="hidden" id="event_id" value="any">
+  <input type="hidden" id="page" value="{{ page }}">
+  <input type="hidden" id="event_id" value="{{ event_id }}">
 
-  <label for="eventSelect" class="mb-0">Event Name &nbsp;&nbsp;&nbsp;</label>
+  <label for="event_select" class="mb-0">Event Name &nbsp;&nbsp;&nbsp;</label>
   
-  <select id="eventSelect" class="form-select form-select-sm" style="width: 250px;">
-    <option selected>Any</option>
-    <option value="1">Event 1</option>
-    <option value="2">Event 2</option>
-    <option value="3">Event 3</option>
+  <select id="event_select" class="form-select form-select-sm" style="width: 250px;">
+    <option>Any</option>
+    {% for e in unique_events %}
+        <option value="{{ e.event_id }}" {% if e.event_id == event_id %} selected {% endif %}>{{ e.event_name }}</option>
+    {% endfor %}
   </select>
   
   <div class="ms-auto">Total: <span id="events_total"></span></div>
@@ -56,8 +56,8 @@
             <tr id="event_{{event.id}}" class="text-center fade show">
             {% endif %}
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_id">{{ event.id }}</td> <!-- id -->
-                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_name">{{ event.event_name }}</td> <!-- Event Name -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle bot_email">{{ event.bot_email }}</td> <!-- Account -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_name">{{ event.event_name }}</td> <!-- Event Name -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_section">{{ event.section }}</td> <!-- Section -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_row">{{ event.row }}</td> <!-- Row	# -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price">{{ event.price }}</td> <!-- Price -->
@@ -90,62 +90,68 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    let currentPage = 1;
-    let event_id = "any"
-    const perPage = 25;
+    $(window).on("load", function() {
+        const perPage = 25;
+        let currentPage = 1;
 
-    function loadPage(page) {
-        $.getJSON("/items/", { page: page, event_id:  event_id}, function(data) {
-            $("#events_total").html(data.total)
-
-            currentPage = data.page;
-            // Populate table
-            let rows = "";
-            data.items.forEach(event => {
-                $("#event_" + event.id + " .event_id").html(event.id);
-                $("#event_" + event.id + " .event_name").html(event.event_name);
-                $("#event_" + event.id + " .bot_email").html(event.bot_email);
-                $("#event_" + event.id + " .event_section").html(event.section);
-                $("#event_" + event.id + " .event_row").html(event.row);
-                $("#event_" + event.id + " .event_price").html(event.price);
-                $("#event_" + event.id + " .event_amount").html(event.amount);
-                $("#event_" + event.id + " .event_full_price").html(event.full_price);
-                $("#event_" + event.id + " .event_price_plus_fees").html(event.price_plus_fees);
-                $("#event_" + event.id + " .event_expire_at").html(event.expire_at);
-
-                $("#details_" + event.id + " .event_id").html(event.event_id);
-                $("#details_" + event.id + " .event_encsoft_url").html(event.encsoft_url);
-                $("#details_" + event.id + " .event_cvv").html(event.cvv);
-                
-                if (event.status == "scheduled") {
-                    $("#event_" + event.id).attr("class", "table-success text-center fade show");
-                } else if (event.status == "failed") {
-                    $("#event_" + event.id).attr("class", "table-danger text-center fade show");
-                } else if (event.expire_at == "expired") {
-                    $("#event_" + event.id).attr("class", "table-secondary text-center fade show");
-                } else {
-                    $("#event_" + event.id).attr("class", "text-center fade show");
-                }
-            });
+        $("#event_select").on("change", function() {
+            var val = $(this).val();
+            $(location).attr("href", "/dashboard?page=1&event_id=" + val);
         });
-    }
 
-    // Initial load
-    loadPage(currentPage);
 
-    // Auto reload every 5 seconds, keep current page
-    setInterval(() => {
+        function loadPage(page) {
+            let event_id = $("#event_id").attr("value")
+            $.getJSON("/items/", { page: page, event_id:  event_id}, function(data) {
+                currentPage = data.page;
+                $("#events_total").html(data.total)
+                
+                let rows = "";
+                data.items.forEach(event => {
+                    $("#event_" + event.id + " .event_id").html(event.id);
+                    $("#event_" + event.id + " .event_name").html(event.event_name);
+                    $("#event_" + event.id + " .bot_email").html(event.bot_email);
+                    $("#event_" + event.id + " .event_section").html(event.section);
+                    $("#event_" + event.id + " .event_row").html(event.row);
+                    $("#event_" + event.id + " .event_price").html(event.price);
+                    $("#event_" + event.id + " .event_amount").html(event.amount);
+                    $("#event_" + event.id + " .event_full_price").html(event.full_price);
+                    $("#event_" + event.id + " .event_price_plus_fees").html(event.price_plus_fees);
+                    $("#event_" + event.id + " .event_expire_at").html(event.expire_at);
+
+                    $("#details_" + event.id + " .event_id").html(event.event_id);
+                    $("#details_" + event.id + " .event_encsoft_url").html(event.encsoft_url);
+                    $("#details_" + event.id + " .event_cvv").html(event.cvv);
+                    
+                    if (event.status == "scheduled") {
+                        $("#event_" + event.id).attr("class", "table-success text-center fade show");
+                    } else if (event.status == "failed") {
+                        $("#event_" + event.id).attr("class", "table-danger text-center fade show");
+                    } else if (event.expire_at == "expired") {
+                        $("#event_" + event.id).attr("class", "table-secondary text-center fade show");
+                    } else {
+                        $("#event_" + event.id).attr("class", "text-center fade show");
+                    }
+                });
+            });
+        }
+
+        // Initial load
         loadPage(currentPage);
-    }, 5000);
 
-    // TODO #2:
-    // 1. implement pagination block (including event_id, page)
+        // Auto reload every 5 seconds, keep current page
+        setInterval(() => {
+            loadPage(currentPage);
+        }, 5000);
 
-    // TODO #3:
-    // 1. implement buy action
+        // TODO #2:
+        // 1. implement pagination block (including event_id, page)
 
-    // TODO #4:
-    // 1. implemet error handling
+        // TODO #3:
+        // 1. implement buy action
 
+        // TODO #4:
+        // 1. implemet error handling
+    });
 </script>
 {% endblock %}
