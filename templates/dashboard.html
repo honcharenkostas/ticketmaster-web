@@ -1,9 +1,22 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h5>Event Tickets</h2>
-<div class="text text-muted mb-4">
-  Total records: {{ total }}
+<h5>Tickets</h2>
+<div class="d-flex align-items-center text text-muted mb-4">
+  <input type="hidden" id="page" value=1>
+  <input type="hidden" id="event_id" value="any">
+
+  <label for="eventSelect" class="mb-0">Event Name &nbsp;&nbsp;&nbsp;</label>
+  
+  <select id="eventSelect" class="form-select form-select-sm" style="width: 250px;">
+    <option selected>Any</option>
+    <option value="1">Event 1</option>
+    <option value="2">Event 2</option>
+    <option value="3">Event 3</option>
+  </select>
+  
+  <div class="ms-auto">Total: 10</div>
+
 </div>
 
 {% if request.query_params.get('error') %}
@@ -13,217 +26,100 @@
 {% endif %}
 <div id="errors" class="alert alert-danger d-none" role="alert"></div>
 
-{% if events %}
-    <div id="table-container">
-        <table class="table table-bordered>
-            <thead class="table-light align-middle">
-                <tr class="text-center">
-                    <th>#</th>
-                    <th>Event Name</th>
-                    <th>Account</th>
-                    <th>Section</th>
-                    <th>Row	#</th>
-                    <th>Price</th>
-                    <th>Amount</th>
-                    <th>Full<br>Price</th>
-                    <th>Price<br>+ Fees</th>
-                    <th>Expire<br>in</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in events %}
-                {% if event.status == Event.STATUS_SCHEDULED %}
-                <tr class="table-success text-center fade show">
-                {% elif event.status == Event.STATUS_FAILED %}
-                <tr class="table-danger text-center fade show">
-                {% elif event.expire_at == "expired" %}
-                <tr class="table-secondary text-center fade show">
-                {% else %}
-                <tr class="text-center fade show">
-                {% endif %}
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.id }}</td> <!-- id -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.event_name }}</td> <!-- Event Name -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.bot_email }}</td> <!-- Account -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.section }}</td> <!-- Section -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.row }}</td> <!-- Row	# -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.price }}</td> <!-- Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.amount }}</td> <!-- Amount -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.full_price }}</td> <!-- Full Price -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable countdown px-0 py-0 align-middle">{{ event.expire_at }}</td> <!-- Expire in -->
-                    <td data-bs-toggle="collapse" data-bs-target="#details-{{event.id}}" class="clickable px-0 py-0 align-middle"> {{ event.status }}</td> <!-- Status -->
-                    <td class="d-flex justify-content-center align-items-center gap-2">
-                        {% if event.status == Event.STATUS_NEW and event.expire_at != "expired" %}
-                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
-                        {% else %}
-                        <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
-                        {% endif %}
-                        <!-- <button data-event-id="{{ event.id }}" class="btn btn-sm btn-danger delete-event">Delete</a> -->
-                    </td>
-                </tr>
-                <tr class="collapse" id="details-{{event.id}}">
-                    <td colspan="12">
-                        &nbsp;&nbsp;&nbsp;&nbsp;Event ID: {{event.event_id}}<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;Created At: {{event.created_at.strftime("%Y-%m-%d %H:%M:%S")}}<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="{{ event.encsoft_url }}" target="_blank">{{ event.encsoft_url }}</a><br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;CVV: {{ event.cvv }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <nav aria-label="Page navigation">
-            {% set total_pages = (total // per_page) + (1 if total % per_page else 0) %}
-            <ul class="pagination justify-content-center">
-                <li class="page-item {% if page == 1 %}active{% endif %}">
-                    <a class="page-link" href="?page=1">1</a>
-                </li>
-
-                {% if page > 4 %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-                {% endif %}
-
-                {% set start = page - 2 if page - 2 > 2 else 2 %}
-                {% set end = page + 2 if page + 2 < total_pages - 1 else total_pages - 1 %}
-
-                {% for p in range(start, end + 1) %}
-                <li class="page-item {% if p == page %}active{% endif %}">
-                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-
-                {% if page < total_pages - 3 %}
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-                {% endif %}
-
-                {% if total_pages > 1 %}
-                <li class="page-item {% if page == total_pages %}active{% endif %}">
-                    <a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-{% endif %}
+<div id="table-container">
+    <table class="table table-bordered">
+        <thead class="table-light align-middle">
+            <tr class="text-center">
+                <th>#</th>
+                <th>Account</th>
+                <th>Event Name</th>
+                <th>Section</th>
+                <th>Row	#</th>
+                <th>Price</th>
+                <th>Amount</th>
+                <th>Full<br>Price</th>
+                <th>Price<br>+ Fees</th>
+                <th>Expire<br>in</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="events-list">
+            
+        </tbody>
+    </table>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".buy-ticket").forEach(btn => {
-            btn.addEventListener("click", async function (e) {
-                e.preventDefault();
-                const row = btn.closest("tr");
-                const eventId = btn.dataset.eventId;
+    let currentPage = 1;
+    let event_id = "any"
+    const perPage = 25;
 
-                try {
-                    const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        document.getElementById("table-container").classList.remove("d-none");
-                        document.getElementById("table-loader").classList.add("d-none");
-                        document.getElementById("errors").classList.remove("d-none");
-                        document.getElementById("errors").innerText = data.error || "Internal server error";
-                    }
-                } catch (err) {
-                    document.getElementById("errors").classList.remove("d-none");
-                    document.getElementById("errors").innerText = "Scheduling buying ticket failed";
-                    document.getElementById("table-container").classList.remove("d-none");
-                    document.getElementById("table-loader").classList.add("d-none");
+    function loadPage(page) {
+        $.getJSON("/items/", { page: page, event_id:  event_id}, function(data) {
+            currentPage = data.page;
+            // Populate table
+            let rows = "";
+            data.items.forEach(event => {
+                if (event.status == "scheduled") {
+                    rows += `<tr class="table-success text-center fade show">`
+                } else if (event.status == "failed") {
+                    rows += `<tr class="table-danger text-center fade show">`
+                } else if (event.expire_at == "expired") {
+                    rows += `<tr class="table-secondary text-center fade show">`
+                } else {
+                    rows += `<tr class="text-center fade show">`
                 }
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.id}</td>`
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.bot_email}</td>`; // Account
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.event_name}</td>`; // Event Name
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.section}</td>`; // Section
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.row}</td>`; // Row #
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.price}</td>`; // Price
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.amount}</td>`; // Amount
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.full_price}</td>`; // Full Price
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.price_plus_fees}</td>`; // Price + Fees
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle countdown">${event.expire_at}</td>`; // Expire in
+                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.status}</td>`; // Status
+                    rows += `<td><button data-event-id="${event.id}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a></td>`; // Action
+                rows += `</tr>`
+
+                rows += `
+                <tr class="collapse" id="details-${event.id}">
+                    <td colspan="12">
+                        &nbsp;&nbsp;&nbsp;&nbsp;Event ID: ${event.event_id}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="${event.encsoft_url}" target="_blank">${event.encsoft_url}</a><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;CVV: ${event.cvv}
+                    </td>
+                </tr>
+                `
             });
+            $("#events-list").html(rows);
         });
+    }
 
-        document.querySelectorAll(".delete-event").forEach(btn => {
-            btn.addEventListener("click", async function (e) {
-                e.preventDefault();
-                const row = btn.closest("tr");
-                const eventId = btn.dataset.eventId;
+    // Initial load
+    loadPage(currentPage);
 
-                try {
-                    const response = await fetch(`/event/${eventId}`, {method: "DELETE"});
-                    const data = await response.json();
+    // Auto reload every 5 seconds, keep current page
+    setInterval(() => {
+        loadPage(currentPage);
+    }, 5000);
 
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        document.getElementById("table-container").classList.remove("d-none");
-                        document.getElementById("table-loader").classList.add("d-none");
-                        document.getElementById("errors").classList.remove("d-none");
-                        document.getElementById("errors").innerText = "Internal server error";
-                    }
-                } catch (err) {
-                    document.getElementById("errors").classList.remove("d-none");
-                    document.getElementById("errors").innerText = "Delete request failed";
-                    document.getElementById("table-container").classList.remove("d-none");
-                    document.getElementById("table-loader").classList.add("d-none");
-                }
-            });
-        });
-    });
+    // TODO #1: 
+    // 1. send requests to /events in loop every 5sec
+    // 2. re-build the table
 
-    document.addEventListener('DOMContentLoaded', () => {
-        function parseTime(t) {
-            const parts = t.split(':').map(Number);
-            return parts.length === 3
-            ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-            : parts[0] * 60 + parts[1];
-        }
+    // TODO #2:
+    // 1. implement pagination block (including event_id, page)
 
-        function formatTime(s) {
-            const h = Math.floor(s / 3600);
-            const m = Math.floor((s % 3600) / 60);
-            const sec = s % 60;
-            return `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-        }
+    // TODO #3:
+    // 1. implement buy action
 
-        document.querySelectorAll('td.countdown').forEach(td => {
-            if (td.textContent.trim().toLowerCase() === 'expired') return;
+    // TODO #4:
+    // 1. implemet error handling
 
-            let seconds = parseTime(td.textContent.trim());
-            if (seconds <= 0) {
-            td.textContent = 'expired';
-            return;
-            }
-
-            const interval = setInterval(() => {
-            seconds -= 5;  // subtract 5 seconds each tick
-            if (seconds <= 0) {
-                td.textContent = 'expired';
-                clearInterval(interval);
-            } else {
-                td.textContent = formatTime(seconds);
-            }
-            }, 5000);  // 5 seconds interval
-        });
-    });
-
-    document.querySelectorAll('.delete-event').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tr = btn.closest('tr');
-            if (!tr) return;
-
-            const height = tr.offsetHeight + 'px';
-            tr.style.height = height;
-            tr.style.transition = 'opacity 1s ease, height 1s ease, padding 1s ease';
-
-            requestAnimationFrame(() => {
-            tr.style.opacity = '0';
-            tr.style.height = '0';
-            tr.style.paddingTop = '0';
-            tr.style.paddingBottom = '0';
-            tr.style.border = '0';
-            });
-
-            setTimeout(() => {
-            tr.style.display = 'none';
-            }, 2500);
-        });
-    });
 </script>
 {% endblock %}

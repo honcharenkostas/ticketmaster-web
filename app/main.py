@@ -8,6 +8,7 @@ from sqlalchemy import desc, asc
 from .db import Event, EventDetails, BotAccount, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
@@ -26,6 +27,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 
 def expire_at(target_time: datetime) -> str:
@@ -41,19 +48,10 @@ def expire_at(target_time: datetime) -> str:
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(
-    request: Request,
-    db: Session = Depends(get_db),
-    page: int = Query(1, ge=1),
-):
+@app.get("/items/")
+def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_id: str = Query(...)):
     per_page = 25
     total = db.query(Event).filter(Event.is_active == True).count()
-    last_page = math.ceil(total / per_page)
-    if page > last_page and last_page != 0:
-        url = str(request.url.include_query_params(page=last_page))
-        return RedirectResponse(url=url)
-    
     offset = (page - 1) * per_page
     _events = (
         db.query(Event)
@@ -69,15 +67,32 @@ def dashboard(
         e.expire_at = expire_at(e.expire_at)
         events.append(e)
 
+    last_page = (total + per_page - 1) // per_page
+    return {
+        "items": events,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "last_page": last_page,
+    }
+
+@app.get("/")
+def dashboard():
+    return RedirectResponse("/dashboard")
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(
+    request: Request,
+    page: int = Query(1, ge=1),
+    event_id: str = Query(...)
+):
     return templates.TemplateResponse(
         "dashboard.html",
         {
-            "request": request,
-            "events": events,
-            "Event": Event,
             "page": page,
-            "per_page": per_page,
-            "total": total,
+            "event_id": event_id,
+            "request": request,
+            "Event": Event,
         },
     )
 
