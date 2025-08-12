@@ -45,7 +45,44 @@
             </tr>
         </thead>
         <tbody id="events-list">
-            
+            {% for event in events %}
+            {% if event.status == Event.STATUS_SCHEDULED %}
+            <tr id="event_{{event.id}}" class="table-success text-center fade show">
+            {% elif event.status == Event.STATUS_FAILED %}
+            <tr id="event_{{event.id}}" class="table-danger text-center fade show">
+            {% elif event.expire_at == "expired" %}
+            <tr id="event_{{event.id}}" class="table-secondary text-center fade show">
+            {% else %}
+            <tr id="event_{{event.id}}" class="text-center fade show">
+            {% endif %}
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_id">{{ event.id }}</td> <!-- id -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_name">{{ event.event_name }}</td> <!-- Event Name -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle bot_email">{{ event.bot_email }}</td> <!-- Account -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_section">{{ event.section }}</td> <!-- Section -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_row">{{ event.row }}</td> <!-- Row	# -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price">{{ event.price }}</td> <!-- Price -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_amount">{{ event.amount }}</td> <!-- Amount -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_full_price">{{ event.full_price }}</td> <!-- Full Price -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price_plus_fees">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable countdown px-0 py-0 align-middle event_expire_at">{{ event.expire_at }}</td> <!-- Expire in -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_status">{{ event.status }}</td> <!-- Status -->
+                <td class="d-flex justify-content-center align-items-center gap-2 event_action">
+                    {% if event.status == Event.STATUS_NEW and event.expire_at != "expired" %}
+                    <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                    {% else %}
+                    <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr class="collapse" id="details_{{ event.id }}">
+                <td colspan="12">
+                    &nbsp;&nbsp;&nbsp;&nbsp;Event ID: <span class="event_id">{{ event.event_id }}</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="{{ event.encsoft_url }}" target="_blank" class="event_encsoft_url">{{ event.encsoft_url }}</a><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;CVV: <span class="event_cvv">{{ event.cvv }}</span>
+                </td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>
@@ -65,40 +102,31 @@
             // Populate table
             let rows = "";
             data.items.forEach(event => {
-                if (event.status == "scheduled") {
-                    rows += `<tr class="table-success text-center fade show">`
-                } else if (event.status == "failed") {
-                    rows += `<tr class="table-danger text-center fade show">`
-                } else if (event.expire_at == "expired") {
-                    rows += `<tr class="table-secondary text-center fade show">`
-                } else {
-                    rows += `<tr class="text-center fade show">`
-                }
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.id}</td>`
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.bot_email}</td>`; // Account
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.event_name}</td>`; // Event Name
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.section}</td>`; // Section
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.row}</td>`; // Row #
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.price}</td>`; // Price
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.amount}</td>`; // Amount
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.full_price}</td>`; // Full Price
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.price_plus_fees}</td>`; // Price + Fees
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle countdown">${event.expire_at}</td>`; // Expire in
-                    rows += `<td data-bs-toggle="collapse" data-bs-target="#details-${event.id}" class="clickable px-0 py-0 align-middle">${event.status}</td>`; // Status
-                    rows += `<td><button data-event-id="${event.id}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a></td>`; // Action
-                rows += `</tr>`
+                $("#event_" + event.id + " .event_id").html(event.id);
+                $("#event_" + event.id + " .event_name").html(event.event_name);
+                $("#event_" + event.id + " .bot_email").html(event.bot_email);
+                $("#event_" + event.id + " .event_section").html(event.section);
+                $("#event_" + event.id + " .event_row").html(event.row);
+                $("#event_" + event.id + " .event_price").html(event.price);
+                $("#event_" + event.id + " .event_amount").html(event.amount);
+                $("#event_" + event.id + " .event_full_price").html(event.full_price);
+                $("#event_" + event.id + " .event_price_plus_fees").html(event.price_plus_fees);
+                $("#event_" + event.id + " .event_expire_at").html(event.expire_at);
 
-                rows += `
-                <tr class="collapse" id="details-${event.id}">
-                    <td colspan="12">
-                        &nbsp;&nbsp;&nbsp;&nbsp;Event ID: ${event.event_id}<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="${event.encsoft_url}" target="_blank">${event.encsoft_url}</a><br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;CVV: ${event.cvv}
-                    </td>
-                </tr>
-                `
+                $("#details_" + event.id + " .event_id").html(event.event_id);
+                $("#details_" + event.id + " .event_encsoft_url").html(event.encsoft_url);
+                $("#details_" + event.id + " .event_cvv").html(event.cvv);
+                
+                if (event.status == "scheduled") {
+                    $("#event_" + event.id).attr("class", "table-success text-center fade show");
+                } else if (event.status == "failed") {
+                    $("#event_" + event.id).attr("class", "table-danger text-center fade show");
+                } else if (event.expire_at == "expired") {
+                    $("#event_" + event.id).attr("class", "table-secondary text-center fade show");
+                } else {
+                    $("#event_" + event.id).attr("class", "text-center fade show");
+                }
             });
-            $("#events-list").html(rows);
         });
     }
 

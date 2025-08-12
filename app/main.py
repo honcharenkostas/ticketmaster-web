@@ -1,6 +1,7 @@
 import os
 import logging
 import math
+import random
 from fastapi import FastAPI, Depends, Request, Query
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -83,12 +84,31 @@ def dashboard():
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
     request: Request,
+    db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
     event_id: str = Query(...)
 ):
+    per_page = 25
+    total = db.query(Event).filter(Event.is_active == True).count()
+    offset = (page - 1) * per_page
+    _events = (
+        db.query(Event)
+        .filter(Event.is_active == True)
+        .order_by(asc(Event.id))
+        .offset(offset)
+        .limit(per_page)
+        .all()
+    )
+
+    events = []
+    for e in _events:
+        e.expire_at = expire_at(e.expire_at)
+        events.append(e)
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
+            "events": events,
             "page": page,
             "event_id": event_id,
             "request": request,
