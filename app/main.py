@@ -34,6 +34,7 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+PER_PAGE = 3
 
 
 def expire_at(target_time: datetime) -> str:
@@ -51,9 +52,12 @@ def expire_at(target_time: datetime) -> str:
 
 @app.get("/items/")
 def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_id: str = Query(...)):
-    per_page = 25
-    total = db.query(Event).filter(Event.is_active == True).count()
-    offset = (page - 1) * per_page
+    offset = (page - 1) * PER_PAGE
+    query = db.query(Event).filter(Event.is_active == True)
+    if event_id and event_id != "Any":
+        query = query.filter(Event.event_id == event_id)
+    total = query.count()
+    
     query = db.query(Event) \
         .filter(Event.is_active == True)
     if event_id and event_id != "Any":
@@ -61,7 +65,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         
     _events = query.order_by(asc(Event.id)) \
         .offset(offset) \
-        .limit(per_page)  \
+        .limit(PER_PAGE)  \
         .all()
 
     events = []
@@ -69,11 +73,11 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         e.expire_at = expire_at(e.expire_at)
         events.append(e)
 
-    last_page = (total + per_page - 1) // per_page
+    last_page = (total + PER_PAGE - 1) // PER_PAGE
     return {
         "items": events,
         "page": page,
-        "per_page": per_page,
+        "per_page": PER_PAGE,
         "total": total,
         "last_page": last_page,
     }
@@ -89,8 +93,12 @@ def dashboard(
     page: int = Query(1, ge=1),
     event_id: str = Query(...)
 ):
-    per_page = 25
-    offset = (page - 1) * per_page
+    offset = (page - 1) * PER_PAGE
+    query = db.query(Event).filter(Event.is_active == True)
+    if event_id and event_id != "Any":
+        query = query.filter(Event.event_id == event_id)
+    total = query.count()
+    
     query = db.query(Event) \
         .filter(Event.is_active == True)
     if event_id and event_id != "Any":
@@ -98,7 +106,7 @@ def dashboard(
         
     _events = query.order_by(asc(Event.id)) \
         .offset(offset) \
-        .limit(per_page)  \
+        .limit(PER_PAGE)  \
         .all()
 
     events = []
@@ -118,6 +126,8 @@ def dashboard(
         {
             "unique_events": unique_events,
             "events": events,
+            "total": total,
+            "per_page": PER_PAGE,
             "page": page,
             "event_id": event_id,
             "request": request,
