@@ -10,6 +10,7 @@ from .db import Event, EventDetails, BotAccount, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import func
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
@@ -73,17 +74,47 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         e.expire_at = expire_at(e.expire_at)
         events.append(e)
 
-    last_page = (total + PER_PAGE - 1) // PER_PAGE
     return {
         "items": events,
         "page": page,
         "per_page": PER_PAGE,
         "total": total,
-        "last_page": last_page,
     }
 
+
+@app.get("/events/")
+def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
+    offset = (page - 1) * PER_PAGE
+    total = db.query(Event.event_id) \
+        .distinct() \
+        .count()
+    
+    _events = (
+        db.query(
+            Event.event_id,
+            Event.event_name,
+            func.sum(Event.full_price).label("full_price_total")
+        )
+        .group_by(Event.event_id, Event.event_name)
+        .limit(PER_PAGE)
+        .offset(offset)
+        .all()
+    )
+    events = [
+        {"event_id": eid, "event_name": name, "full_price_total": total}
+        for eid, name, total in _events
+    ]
+
+    return {
+        "events": events,
+        "page": page,
+        "per_page": PER_PAGE,
+        "total": total,
+    }
+
+
 @app.get("/")
-def dashboard():
+def index():
     return RedirectResponse("/tickets?page=1&event_id=Any")
 
 @app.get("/tickets", response_class=HTMLResponse)
@@ -122,7 +153,7 @@ def tickets(
     )
 
     return templates.TemplateResponse(
-        "dashboard.html",
+        "tickets.html",
         {
             "unique_events": unique_events,
             "events": events,
@@ -143,8 +174,27 @@ def events(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
 ):
-    total  = 0
-    events = []
+    offset = (page - 1) * PER_PAGE
+    total = (
+        db.query(Event.event_id)
+        .distinct()
+        .count()
+    )
+    _events = (
+        db.query(
+            Event.event_id,
+            Event.event_name,
+            func.sum(Event.full_price).label("full_price_total")
+        )
+        .group_by(Event.event_id, Event.event_name)
+        .limit(PER_PAGE)
+        .offset(offset)
+        .all()
+    )
+    events = [
+        {"event_id": eid, "event_name": name, "full_price_total": total}
+        for eid, name, total in _events
+    ]
 
     return templates.TemplateResponse(
         "events.html",
