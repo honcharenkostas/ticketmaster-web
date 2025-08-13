@@ -84,10 +84,10 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
 
 @app.get("/")
 def dashboard():
-    return RedirectResponse("/dashboard")
+    return RedirectResponse("/tickets?page=1&event_id=Any")
 
-@app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(
+@app.get("/tickets", response_class=HTMLResponse)
+def tickets(
     request: Request,
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
@@ -132,8 +132,32 @@ def dashboard(
             "event_id": event_id,
             "request": request,
             "Event": Event,
+            "active_page": "tickets"
         },
     )
+
+
+@app.get("/events", response_class=HTMLResponse)
+def events(
+    request: Request,
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+):
+    total  = 0
+    events = []
+
+    return templates.TemplateResponse(
+        "events.html",
+        {
+            "events": events,
+            "total": total,
+            "per_page": PER_PAGE,
+            "page": page,
+            "request": request,
+            "active_page": "events"
+        },
+    )
+
 
 @app.post("/event")
 def create_event(request: EventCreate, db: Session = Depends(get_db)):

@@ -2,20 +2,7 @@
 
 {% block content %}
 <div class="d-flex align-items-center text text-muted py-3">
-  <input type="hidden" id="page" value="{{ page }}">
-  <input type="hidden" id="event_id" value="{{ event_id }}">
-
-  <label for="event_select" class="mb-0">Event Name &nbsp;&nbsp;&nbsp;</label>
-  
-  <select id="event_select" class="form-select form-select-sm" style="width: 250px;">
-    <option>Any</option>
-    {% for e in unique_events %}
-        <option value="{{ e.event_id }}" {% if e.event_id == event_id %} selected {% endif %}>{{ e.event_name }}</option>
-    {% endfor %}
-  </select>
-  
   <div class="ms-auto">Total: <span id="events_total">{{ total }}</span></div>
-
 </div>
 
 {% if request.query_params.get('error') %}
@@ -119,42 +106,10 @@
     </ul>
 </nav>
 {% endif %}
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(window).on("load", function() {
         const perPage = 25;
         let currentPage = 1;
-
-        $("#event_select").on("change", function() {
-            var val = $(this).val();
-            $(location).attr("href", "/dashboard?page=1&event_id=" + val);
-        });
-
-        document.querySelectorAll(".buy-ticket").forEach(btn => {
-            btn.addEventListener("click", async function (e) {
-                e.preventDefault();
-                const row = btn.closest("tr");
-                const eventId = btn.dataset.eventId;
-
-                try {
-                    const response = await fetch(`/buy-ticket/${eventId}`, { method: "POST" });
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        document.getElementById("errors").classList.remove("d-none");
-                        document.getElementById("errors").innerText = data.error || "Internal server error";
-                    }
-                } catch (err) {
-                    document.getElementById("errors").classList.remove("d-none");
-                    document.getElementById("errors").innerText = "Scheduling buying ticket failed";
-                    document.getElementById("table-container").classList.remove("d-none");
-                }
-            });
-        });
 
         function loadPage(page) {
             let event_id = $("#event_id").attr("value")
@@ -200,20 +155,10 @@
 
         // Initial load
         loadPage(currentPage);
-
         // Auto reload every 5 seconds, keep current page
         setInterval(() => {
             loadPage(currentPage);
         }, 5000);
-
-        // TODO #2:
-        // 1. implement pagination block (including event_id, page)
-
-        // TODO #3:
-        // 1. implement buy action
-
-        // TODO #4:
-        // 1. implemet error handling
     });
 </script>
 {% endblock %}
