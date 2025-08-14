@@ -2,8 +2,9 @@ import requests
 import os
 import time
 import logging
+import re
 from datetime import datetime
-from db import Event, EventDetails, BotAccount, SessionLocal
+from db import SessionLocal, Event, EventDetails, BotAccount, AutoAprovalRules
 from dotenv import load_dotenv
 
 
@@ -21,6 +22,106 @@ logger = logging.getLogger(__name__)
 db = SessionLocal()
 ids = set()
 start_time = datetime.now()
+EVENT_ROWS_MAPPER = {
+    "A": 1, 
+    "B": 2, 
+    "C": 3, 
+    "D": 4, 
+    "E": 5, 
+    "F": 6, 
+    "G": 7, 
+    "H": 8, 
+    "I": 9, 
+    "J": 10,
+    "K": 11, 
+    "L": 12, 
+    "M": 13, 
+    "N": 14, 
+    "O": 15, 
+    "P": 16, 
+    "Q": 17, 
+    "R": 18, 
+    "S": 19,
+    "T": 20, 
+    "U": 21, 
+    "V": 22, 
+    "W": 23, 
+    "X": 24, 
+    "Y": 25, 
+    "Z": 26, 
+    "AA": 27, 
+    "BB": 28,
+    "CC": 29, 
+    "DD": 30, 
+    "EE": 31, 
+    "FF": 32, 
+    "GG": 33, 
+    "HH": 34,
+    "II": 35, 
+    "JJ": 36,
+    "KK": 37, 
+    "LL": 38, 
+    "MM": 39, 
+    "NN": 40, 
+    "OO": 41, 
+    "PP": 42, 
+    "QQ": 43, 
+    "RR": 44,
+    "SS": 45, 
+    "TT": 46, 
+    "UU": 47, 
+    "VV": 48, 
+    "WW": 49, 
+    "XX": 50, 
+    "YY": 51, 
+    "ZZ": 52
+}
+
+
+def range_to_x(num):
+    if 100 <= num <= 599:
+        return f"{(num // 100) * 100}x"
+    return None
+
+
+def is_high_quality_ticket(event):
+    section = event.section.strip() if event.section else None
+    section = range_to_x(section) if section else None
+    row = event.row.strip() if event.row else None
+    if row and re.search(r'\d+', row):
+        row = EVENT_ROWS_MAPPER.get(row)
+    if not section or not row:
+        return False
+    
+    rule = db.query(AutoAprovalRules).filter(
+        AutoAprovalRules.row==row,
+        AutoAprovalRules.section==section
+    ).first()
+
+    return True if rule else False
+
+
+def schedule_to_buy(event):
+    if not event.encsoft_url or not event.cvv:
+        logger.error("Empty encsoft_url or cvv")
+        return False
+    
+    try:
+        resp = requests.post(
+            url=os.getenv("CHECKOUT_BOT_API_URL"),
+            json={
+                "encsoft_url": event.encsoft_url,
+                "cvv": event.cvv,
+            }
+        )
+
+        if resp.status_code == 200:
+            return True
+    except Exception as e:
+        logger.error(e)
+
+    return False
+
 
 def run():
     try:
@@ -100,6 +201,14 @@ def run():
                     cvv=cvv,
                     status=Event.STATUS_NEW
                 )
+
+                # Auto aproval stuff
+                if is_high_quality_ticket(event):
+                    if schedule_to_buy(event):
+                        event.status = Event.STATUS_SCHEDULED
+                    else:
+                        event.status = Event.STATUS_FAILED
+
                 db.add(event)
                 db.commit()
                 db.refresh(event)

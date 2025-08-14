@@ -51,6 +51,13 @@ class BotAccount(Base):
     email = Column(String)
     cvv = Column(String)
 
+class AutoAprovalRules(Base):
+    __tablename__ = "auto_aproval_rules"
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String)
+    event_name = Column(String)
+    section = Column(String)
+    row = Column(String)
 
 def get_db():
     db = SessionLocal()
