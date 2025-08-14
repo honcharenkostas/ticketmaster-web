@@ -34,13 +34,13 @@
                 <th>Event Name</th>
                 <th>Section</th>
                 <th>Row	#</th>
-                <th>Price</th>
                 <th>Amount</th>
-                <th>Full<br>Price</th>
+                <th>Price</th>
                 <th>Price<br>+ Fees</th>
-                <th>Expire<br>in</th>
-                <th>Status</th>
                 <th>Action</th>
+                <th>Expire<br>in</th>
+                <th>Full<br>Price</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody id="events-list">
@@ -59,12 +59,9 @@
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_name">{{ event.event_name }}</td> <!-- Event Name -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_section">{{ event.section }}</td> <!-- Section -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_row">{{ event.row }}</td> <!-- Row	# -->
-                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price">{{ event.price }}</td> <!-- Price -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_amount">{{ event.amount }}</td> <!-- Amount -->
-                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_full_price">{{ event.full_price }}</td> <!-- Full Price -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price">{{ event.price }}</td> <!-- Price -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price_plus_fees">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
-                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable countdown px-0 py-0 align-middle event_expire_at">{{ event.expire_at }}</td> <!-- Expire in -->
-                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_status">{{ event.status }}</td> <!-- Status -->
                 <td class="d-flex justify-content-center align-items-center gap-2 event_action">
                     {% if event.status == Event.STATUS_NEW and event.expire_at != "expired" %}
                     <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
@@ -72,6 +69,9 @@
                     <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0" disabled>&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
                     {% endif %}
                 </td>
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable countdown px-0 py-0 align-middle event_expire_at">{{ event.expire_at }}</td> <!-- Expire in -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_full_price">{{ event.full_price }}</td> <!-- Full Price -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_status">{{ event.status }}</td> <!-- Status -->
             </tr>
 
             <tr class="collapse" id="details_{{ event.id }}">
