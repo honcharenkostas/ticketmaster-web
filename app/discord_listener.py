@@ -77,7 +77,6 @@ EVENT_ROWS_MAPPER = {
     "ZZ": 52
 }
 
-
 def range_to_x(num):
     if 100 <= num <= 599:
         return f"{(num // 100) * 100}x"
@@ -85,17 +84,18 @@ def range_to_x(num):
 
 
 def is_high_quality_ticket(event):
-    section = event.section.strip() if event.section else None
+    section = int(event.section.strip()) if event.section else None
     section = range_to_x(section) if section else None
     row = event.row.strip() if event.row else None
-    if row and re.search(r'\d+', row):
+    if row and not re.match(r'[0-9]+', row):
         row = EVENT_ROWS_MAPPER.get(row)
+
     if not section or not row:
         return False
     
     rule = db.query(AutoAprovalRules).filter(
-        AutoAprovalRules.row==row,
-        AutoAprovalRules.section==section
+        AutoAprovalRules.row==str(row),
+        AutoAprovalRules.section==str(section)
     ).first()
 
     return True if rule else False
