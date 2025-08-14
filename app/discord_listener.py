@@ -89,13 +89,17 @@ def is_high_quality_ticket(event):
     row = event.row.strip() if event.row else None
     if row and not re.match(r'[0-9]+', row):
         row = EVENT_ROWS_MAPPER.get(row)
+    try:
+        row = int(row)
+    except:
+        row = None
 
     if not section or not row:
         return False
     
     rule = db.query(AutoAprovalRules).filter(
-        AutoAprovalRules.row==str(row),
-        AutoAprovalRules.section==str(section)
+        AutoAprovalRules.row >= row,
+        AutoAprovalRules.section == str(section)
     ).first()
 
     return True if rule else False
