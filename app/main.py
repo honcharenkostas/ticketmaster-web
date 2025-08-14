@@ -101,7 +101,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
         .all()
     )
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": total}
+        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 
@@ -192,7 +192,7 @@ def events(
         .all()
     )
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": total}
+        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 
