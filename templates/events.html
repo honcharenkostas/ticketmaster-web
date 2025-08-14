@@ -78,7 +78,6 @@
                 
                 let rows = "";
                 data.events.forEach(event => {
-                    console.log(event)
                     $("#event_" + event['event_id'] + " .event_id").html(event['event_id']);
                     $("#event_" + event['event_id'] + " .event_name").html(event['event_name']);
                     $("#event_" + event['event_id'] + " .full_price_total").html(event['full_price_total']);
