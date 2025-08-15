@@ -10,7 +10,7 @@ from .db import Event, EventDetails, BotAccount, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import func
+from sqlalchemy import case, func
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
@@ -93,7 +93,15 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
         db.query(
             Event.event_id,
             Event.event_name,
-            func.sum(Event.full_price).label("full_price_total")
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Event.status == Event.STATUS_SCHEDULED, Event.full_price),
+                        else_=0
+                    )
+                ),
+                0
+            ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
         .limit(PER_PAGE)
@@ -184,7 +192,15 @@ def events(
         db.query(
             Event.event_id,
             Event.event_name,
-            func.sum(Event.full_price).label("full_price_total")
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Event.status == Event.STATUS_SCHEDULED, Event.full_price),
+                        else_=0
+                    )
+                ),
+                0
+            ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
         .limit(PER_PAGE)
