@@ -31,6 +31,8 @@ class Event(Base):
     amount = Column(Integer)
     full_price = Column(Float)
     price_plus_fees = Column(Float)
+    listing_low_price = Column(Float)
+    roi = Column(Float)
     expire_at = Column(DateTime)
     encsoft_url = Column(String)
     cvv = Column(String)
