@@ -65,6 +65,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         query = query.filter(Event.event_id == event_id)
         
     _events = query.order_by(asc(Event.id)) \
+        .order_by(asc(Event.created_at)) \
         .offset(offset) \
         .limit(PER_PAGE)  \
         .all()
@@ -104,6 +105,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
             ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
+        .order_by(asc(Event.event_name)) \
         .limit(PER_PAGE)
         .offset(offset)
         .all()
@@ -144,6 +146,7 @@ def tickets(
         query = query.filter(Event.event_id == event_id)
         
     _events = query.order_by(asc(Event.id)) \
+        .order_by(asc(Event.created_at)) \
         .offset(offset) \
         .limit(PER_PAGE)  \
         .all()
@@ -203,6 +206,7 @@ def events(
             ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
+        .order_by(asc(Event.event_name)) \
         .limit(PER_PAGE)
         .offset(offset)
         .all()
