@@ -84,12 +84,11 @@ def range_to_x(num):
 
 
 def is_high_quality_ticket(event):
-    return False
     section = event.section if event.section else None
     if section and section.isdigit():
         section = int(section)
         section = range_to_x(section)
-        
+
     row = event.row.strip() if event.row else None
     if row and not re.match(r'[0-9]+', row):
         row = EVENT_ROWS_MAPPER.get(row)
@@ -98,7 +97,8 @@ def is_high_quality_ticket(event):
         return False
     
     rule = db.query(AutoAprovalRules).filter(
-        AutoAprovalRules.row==str(row),
+        AutoAprovalRules.event_id==event.event_id,
+        AutoAprovalRules.row>=str(row),
         AutoAprovalRules.section==str(section)
     ).first()
 
