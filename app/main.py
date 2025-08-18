@@ -70,9 +70,13 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         .limit(PER_PAGE)  \
         .all()
 
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
+
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
+        e.event_name = event_details.get(e.event_id)
         events.append(e)
 
     return {
@@ -110,8 +114,11 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
         .offset(offset)
         .all()
     )
+
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
+        {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 
@@ -150,10 +157,14 @@ def tickets(
         .offset(offset) \
         .limit(PER_PAGE)  \
         .all()
+    
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
 
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
+        e.event_name = event_details.get(e.event_id)
         events.append(e)
 
     unique_events = (
@@ -211,8 +222,11 @@ def events(
         .offset(offset)
         .all()
     )
+
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
+        {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 

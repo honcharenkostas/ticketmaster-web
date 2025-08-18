@@ -98,7 +98,7 @@ def is_high_quality_ticket(event):
     
     rule = db.query(AutoAprovalRules).filter(
         AutoAprovalRules.event_id==event.event_id,
-        AutoAprovalRules.row>=str(row),
+        AutoAprovalRules.row>=row,
         AutoAprovalRules.section==str(section)
     ).first()
 
