@@ -37,8 +37,8 @@
                 <th>Amount</th>
                 <th>Price</th>
                 <th>Price<br>+ Fees</th>
-                <th>Listing<br>Low Price</th>
-                <th>ROI</th>
+                <!-- <th>Listing<br>Low Price</th> -->
+                <!-- <th>ROI</th> -->
                 <th>Action</th>
                 <th>Expire<br>in</th>
                 <th>Full<br>Price</th>
@@ -79,7 +79,7 @@
             </tr>
 
             <tr class="collapse" id="details_{{ event.id }}">
-                <td colspan="12">
+                <td colspan="10">
                     &nbsp;&nbsp;&nbsp;&nbsp;Event ID: <span class="event_id">{{ event.event_id }}</span><br>
                     &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="{{ event.encsoft_url }}" target="_blank" class="event_encsoft_url">{{ event.encsoft_url }}</a><br>
                     &nbsp;&nbsp;&nbsp;&nbsp;CVV: <span class="event_cvv">{{ event.cvv }}</span>
