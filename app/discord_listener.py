@@ -84,6 +84,7 @@ def range_to_x(num):
 
 
 def is_high_quality_ticket(event):
+    return False
     section = event.section if event.section else None
     if section and section.isdigit():
         section = int(section)
