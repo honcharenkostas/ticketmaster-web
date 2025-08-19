@@ -31,6 +31,8 @@ class Event(Base):
     amount = Column(Integer)
     full_price = Column(Float)
     price_plus_fees = Column(Float)
+    listing_low_price = Column(Float)
+    roi = Column(Float)
     expire_at = Column(DateTime)
     encsoft_url = Column(String)
     cvv = Column(String)
@@ -42,8 +44,9 @@ class Event(Base):
 class EventDetails(Base):
     __tablename__ = "event_details"
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(String)
     event_name = Column(String)
+    event_id = Column(String)
+    automatiq_event_id = Column(String)
 
 class BotAccount(Base):
     __tablename__ = "bot_accounts"

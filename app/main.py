@@ -10,7 +10,7 @@ from .db import Event, EventDetails, BotAccount, get_db
 from .schemas import EventCreate
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import func
+from sqlalchemy import case, func
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
@@ -65,13 +65,18 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1), event_i
         query = query.filter(Event.event_id == event_id)
         
     _events = query.order_by(asc(Event.id)) \
+        .order_by(asc(Event.created_at)) \
         .offset(offset) \
         .limit(PER_PAGE)  \
         .all()
 
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
+
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
+        e.event_name = event_details.get(e.event_id)
         events.append(e)
 
     return {
@@ -93,15 +98,27 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
         db.query(
             Event.event_id,
             Event.event_name,
-            func.sum(Event.full_price).label("full_price_total")
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Event.status == Event.STATUS_SCHEDULED, Event.full_price),
+                        else_=0
+                    )
+                ),
+                0
+            ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
+        .order_by(asc(Event.event_name)) \
         .limit(PER_PAGE)
         .offset(offset)
         .all()
     )
+
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
+        {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 
@@ -136,13 +153,18 @@ def tickets(
         query = query.filter(Event.event_id == event_id)
         
     _events = query.order_by(asc(Event.id)) \
+        .order_by(asc(Event.created_at)) \
         .offset(offset) \
         .limit(PER_PAGE)  \
         .all()
+    
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
 
     events = []
     for e in _events:
         e.expire_at = expire_at(e.expire_at)
+        e.event_name = event_details.get(e.event_id)
         events.append(e)
 
     unique_events = (
@@ -184,15 +206,27 @@ def events(
         db.query(
             Event.event_id,
             Event.event_name,
-            func.sum(Event.full_price).label("full_price_total")
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Event.status == Event.STATUS_SCHEDULED, Event.full_price),
+                        else_=0
+                    )
+                ),
+                0
+            ).label("full_price_total")
         )
         .group_by(Event.event_id, Event.event_name)
+        .order_by(asc(Event.event_name)) \
         .limit(PER_PAGE)
         .offset(offset)
         .all()
     )
+
+    event_details = db.query(EventDetails).all()
+    event_details = { row.event_id : row.event_name for row in event_details }
     events = [
-        {"event_id": eid, "event_name": name, "full_price_total": round(total, 2)}
+        {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
         for eid, name, total in _events
     ]
 
