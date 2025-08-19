@@ -127,6 +127,68 @@ def schedule_to_buy(event):
     return False
 
 
+def enrich_event(event):
+    if not event.event_id or not event.section:
+        logger.error(f"Invalid event_id or section. event.id={event.id}")
+        return
+    
+    # get dataiq event
+    resp = requests.post(
+        "https://api.dataiq.automatiq.com/v1/events?limit=1", 
+        headers={
+            'accept': 'application/json',
+            'X-API-Key': os.getenv('AUTOMATIQ_API_KEY'),
+            'Content-Type': 'application/json',
+        },
+        json={"tm_id": event.event_id}
+    )
+    if resp.status_code != 200:
+        logger.error(f"Invalid response code {resp.status_code} from automatiq.com/api")
+        return
+    
+    dataiq_event_id = None
+    try:
+        dataiq_event_id = resp.json()['items'][0]['id']
+    except Exception as e:
+        logger.error(e)
+
+    if not dataiq_event_id:    
+        logger.error(f"Dataiq event id not found")
+        return
+    
+    # get listings by dataiq event id
+    resp = requests.get(
+        f"https://api.dataiq.automatiq.com/v1/listings?id={dataiq_event_id}", 
+        headers={
+            'accept': 'application/json',
+            'X-API-Key': os.getenv('AUTOMATIQ_API_KEY'),
+            'Content-Type': 'application/json',
+        }
+    )
+    if resp.status_code != 200:
+        logger.error(f"Invalid response code {resp.status_code} from automatiq.com/api")
+        return
+    
+    # get lowest price by section
+    lowest_price = None
+    try:
+        data = {row['section']: row['get_in'] for row in resp.json()}
+        lowest_price = data.get(event.section)
+    except Exception as e:
+        logger.error(e)
+    
+    if not lowest_price:
+        logger.error(f"Lowest price not found")
+        return
+    
+    # calculate roi
+    roi = lowest_price / (event.price_plus_fees * 0.90) if event.price_plus_fees else 0
+    
+    # enrich event
+    event.listing_low_price = lowest_price
+    event.roi = roi
+
+
 def run():
     try:
         response = requests.get(os.getenv('DISCORD_SERVER_SIDE_URL'))
@@ -202,6 +264,11 @@ def run():
                         cvv=cvv,
                         status=Event.STATUS_NEW
                     )
+
+                    try:
+                        enrich_event(event)
+                    except Exception as e:
+                        logger.error(e)
 
                     # Auto aproval stuff
                     if is_high_quality_ticket(event):
