@@ -128,8 +128,16 @@ def schedule_to_buy(event):
 
 
 def enrich_event(event):
-    if not event.event_id or not event.section:
-        logger.error(f"Invalid event_id or section. event.id={event.id}")
+    event_row = event.row
+    if not event_row.isdigit():
+        event_row = EVENT_ROWS_MAPPER.get(event_row)
+        if not event_row:
+            return
+    
+    event_row = int(event_row)
+
+    if not event.event_id or not event.section or not event_row:
+        logger.error(f"Invalid event_id or section or row. event.id={event.id}")
         return
     
     # get dataiq event
@@ -156,29 +164,63 @@ def enrich_event(event):
         logger.error(f"Dataiq event id not found")
         return
     
-    # get listings by dataiq event id
-    resp = requests.get(
-        f"https://api.dataiq.automatiq.com/v1/listings?id={dataiq_event_id}", 
+    resp = requests.post(
+        "https://api.dataiq.automatiq.com/v1/events?limit=100&offset=0", 
         headers={
             'accept': 'application/json',
             'X-API-Key': os.getenv('AUTOMATIQ_API_KEY'),
             'Content-Type': 'application/json',
-        }
+        },
+        json={"id": dataiq_event_id}
     )
     if resp.status_code != 200:
         logger.error(f"Invalid response code {resp.status_code} from automatiq.com/api")
         return
-    
-    # get lowest price by section
-    lowest_price = None
+
+    b2b_id = None
     try:
-        data = {row['section']: row['get_in'] for row in resp.json()}
-        lowest_price = data.get(event.section)
-    except Exception as e:
-        logger.error(e)
+        b2b_id = resp.json()["items"][0]["b2b_id"]
+    except:
+        logger.error("b2b_id not found")
+        return
     
+    resp = requests.get(
+        f"https://b2b.automatiq.com/api/ecomm/events/{b2b_id}/listings?filter[section]={event.section}&order_by_direction=asc&page[size]=100&page[number]=1", 
+        headers={
+            'accept': 'application/json',
+            'Authorization': f'Bearer {os.getenv("B2B_AUTOMATIQ_API_KEY")}',
+        }
+    )
+    if resp.status_code != 200:
+        logger.error(f"Invalid response code {resp.status_code} from b2b.automatiq.com")
+        return
+    
+    lowest_price = None
+    for listing in resp.json()["data"]:
+        listing = listing.get("attributes")
+        if not listing:
+            continue
+
+        price = listing.get("price")
+        section = listing.get("section")
+        row = listing.get("row")
+        if not price or not section or not row:
+            continue
+        
+        if not row.isdigit():
+            row = EVENT_ROWS_MAPPER.get(row)
+            if not row:
+                continue
+        
+        row = int(row)
+
+        if row and row <= event_row:
+            if not lowest_price:
+                lowest_price = price
+            elif price < lowest_price:
+                lowest_price = price
+
     if not lowest_price:
-        logger.error(f"Lowest price not found")
         return
     
     # calculate roi
