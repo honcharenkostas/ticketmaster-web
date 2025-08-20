@@ -206,6 +206,8 @@ def enrich_event(event):
         row = listing.get("row")
         if not price or not section or not row:
             continue
+
+        price = price / 100
         
         if not row.isdigit():
             row = EVENT_ROWS_MAPPER.get(row)
