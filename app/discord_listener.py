@@ -182,7 +182,7 @@ def enrich_event(event):
         return
     
     # calculate roi
-    roi = round(lowest_price / (event.price_plus_fees * 0.90) - 1, 2) if event.price_plus_fees else 0
+    roi = round(((lowest_price / event.price_plus_fees * 0.9) - 1) * 100, 2) if event.price_plus_fees else 0
     
     # enrich event
     event.listing_low_price = lowest_price
