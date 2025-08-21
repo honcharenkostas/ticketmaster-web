@@ -216,7 +216,7 @@ def enrich_event(event):
         
         row = int(row)
 
-        if row and row <= event_row:
+        if row and row <= event_row + 3: # check rows in diapason from 1 to currennt row + 3
             if not lowest_price:
                 lowest_price = price
             elif price < lowest_price:
