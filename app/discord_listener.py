@@ -140,52 +140,13 @@ def enrich_event(event):
         logger.error(f"Invalid event_id or section or row. event.id={event.id}")
         return
     
-    # get dataiq event
-    resp = requests.post(
-        "https://api.dataiq.automatiq.com/v1/events?limit=1", 
-        headers={
-            'accept': 'application/json',
-            'X-API-Key': os.getenv('AUTOMATIQ_API_KEY'),
-            'Content-Type': 'application/json',
-        },
-        json={"tm_id": event.event_id}
-    )
-    if resp.status_code != 200:
-        logger.error(f"Invalid response code {resp.status_code} from automatiq.com/api")
-        return
-    
-    dataiq_event_id = None
-    try:
-        dataiq_event_id = resp.json()['items'][0]['id']
-    except Exception as e:
-        logger.error(e)
-
-    if not dataiq_event_id:    
-        logger.error(f"Dataiq event id not found")
-        return
-    
-    resp = requests.post(
-        "https://api.dataiq.automatiq.com/v1/events?limit=100&offset=0", 
-        headers={
-            'accept': 'application/json',
-            'X-API-Key': os.getenv('AUTOMATIQ_API_KEY'),
-            'Content-Type': 'application/json',
-        },
-        json={"id": dataiq_event_id}
-    )
-    if resp.status_code != 200:
-        logger.error(f"Invalid response code {resp.status_code} from automatiq.com/api")
-        return
-
-    b2b_id = None
-    try:
-        b2b_id = resp.json()["items"][0]["b2b_id"]
-    except:
-        logger.error("b2b_id not found")
+    event_details = db.query(EventDetails).filter(EventDetails.event_id == event.event_id).first()
+    if not event_details or not event_details.automatiq_event_id:
+        logger.error(f"automatiq_event_id not found. event_id={event.event_id}")
         return
     
     resp = requests.get(
-        f"https://b2b.automatiq.com/api/ecomm/events/{b2b_id}/listings?filter[section]={event.section}&order_by_direction=asc&page[size]=100&page[number]=1", 
+        f"https://b2b.automatiq.com/api/ecomm/events/{event_details.automatiq_event_id}/listings?filter[section]={event.section}&order_by_direction=asc&page[size]=100&page[number]=1", 
         headers={
             'accept': 'application/json',
             'Authorization': f'Bearer {os.getenv("B2B_AUTOMATIQ_API_KEY")}',
