@@ -60,7 +60,7 @@ class AutoAprovalRules(Base):
     event_id = Column(String)
     event_name = Column(String)
     section = Column(String)
-    row = Column(String)
+    row = Column(Integer)
     roi = Column(Float, default=0)
 
 def get_db():
