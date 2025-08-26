@@ -61,6 +61,7 @@ class AutoAprovalRules(Base):
     event_name = Column(String)
     section = Column(String)
     row = Column(String)
+    roi = Column(Float, default=0)
 
 def get_db():
     db = SessionLocal()

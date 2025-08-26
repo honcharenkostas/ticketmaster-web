@@ -93,13 +93,16 @@ def is_high_quality_ticket(event):
     if row and not re.match(r'[0-9]+', row):
         row = EVENT_ROWS_MAPPER.get(row)
 
+    roi = event.roi if event.roi is not None else 0
+
     if not section or not row:
         return False
     
     rule = db.query(AutoAprovalRules).filter(
         AutoAprovalRules.event_id==event.event_id,
+        AutoAprovalRules.section==str(section),
         AutoAprovalRules.row>=row,
-        AutoAprovalRules.section==str(section)
+        AutoAprovalRules.roi>=roi
     ).first()
 
     return True if rule else False
