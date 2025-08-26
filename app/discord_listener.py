@@ -131,6 +131,73 @@ def schedule_to_buy(event):
     return False
 
 
+def enrich_event(event):
+    event_row = event.row
+    if not event_row.isdigit():
+        event_row = EVENT_ROWS_MAPPER.get(event_row)
+        if not event_row:
+            return
+    
+    event_row = int(event_row)
+
+    if not event.event_id or not event.section or not event_row:
+        logger.error(f"Invalid event_id or section or row. event.id={event.id}")
+        return
+    
+    event_details = db.query(EventDetails).filter(EventDetails.event_id == event.event_id).first()
+    if not event_details or not event_details.automatiq_event_id:
+        logger.error(f"automatiq_event_id not found. event_id={event.event_id}")
+        return
+    
+    resp = requests.get(
+        f"https://b2b.automatiq.com/api/ecomm/events/{event_details.automatiq_event_id}/listings?filter[section]={event.section}&order_by_direction=asc&page[size]=100&page[number]=1", 
+        headers={
+            'accept': 'application/json',
+            'Authorization': f'Bearer {os.getenv("B2B_AUTOMATIQ_API_KEY")}',
+        }
+    )
+    if resp.status_code != 200:
+        logger.error(f"Invalid response code {resp.status_code} from b2b.automatiq.com")
+        return
+    
+    lowest_price = None
+    for listing in resp.json()["data"]:
+        listing = listing.get("attributes")
+        if not listing:
+            continue
+
+        price = listing.get("price")
+        section = listing.get("section")
+        row = listing.get("row")
+        if not price or not section or not row:
+            continue
+
+        price = price / 100
+        
+        if not row.isdigit():
+            row = EVENT_ROWS_MAPPER.get(row)
+            if not row:
+                continue
+        
+        row = int(row)
+
+        if row and row <= event_row + 3: # check rows in diapason from 1 to currennt row + 3
+            if not lowest_price:
+                lowest_price = price
+            elif price < lowest_price:
+                lowest_price = price
+
+    if not lowest_price:
+        return
+    
+    # calculate roi
+    roi = round(((lowest_price / event.price_plus_fees * 0.9) - 1) * 100, 2) if event.price_plus_fees else 0
+    
+    # enrich event
+    event.listing_low_price = lowest_price
+    event.roi = roi
+
+
 def run():
     try:
         response = requests.get(os.getenv('DISCORD_SERVER_SIDE_URL'))
@@ -206,6 +273,11 @@ def run():
                         cvv=cvv,
                         status=Event.STATUS_NEW
                     )
+
+                    try:
+                        enrich_event(event)
+                    except Exception as e:
+                        logger.error(e)
 
                     # Auto aproval stuff
                     if is_high_quality_ticket(event):

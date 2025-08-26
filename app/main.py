@@ -97,7 +97,6 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
     _events = (
         db.query(
             Event.event_id,
-            Event.event_name,
             func.coalesce(
                 func.sum(
                     case(
@@ -108,8 +107,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
                 0
             ).label("full_price_total")
         )
-        .group_by(Event.event_id, Event.event_name)
-        .order_by(asc(Event.event_name)) \
+        .group_by(Event.event_id)
         .limit(PER_PAGE)
         .offset(offset)
         .all()
@@ -119,7 +117,7 @@ def get_items(db: Session = Depends(get_db), page: int = Query(1, ge=1)):
     event_details = { row.event_id : row.event_name for row in event_details }
     events = [
         {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
-        for eid, name, total in _events
+        for eid, total in _events
     ]
 
     return {
@@ -205,7 +203,6 @@ def events(
     _events = (
         db.query(
             Event.event_id,
-            Event.event_name,
             func.coalesce(
                 func.sum(
                     case(
@@ -216,8 +213,7 @@ def events(
                 0
             ).label("full_price_total")
         )
-        .group_by(Event.event_id, Event.event_name)
-        .order_by(asc(Event.event_name)) \
+        .group_by(Event.event_id)
         .limit(PER_PAGE)
         .offset(offset)
         .all()
@@ -227,7 +223,7 @@ def events(
     event_details = { row.event_id : row.event_name for row in event_details }
     events = [
         {"event_id": eid, "event_name": event_details.get(eid), "full_price_total": round(total, 2)}
-        for eid, name, total in _events
+        for eid, total in _events
     ]
 
     return templates.TemplateResponse(

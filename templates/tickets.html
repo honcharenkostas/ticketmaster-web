@@ -37,8 +37,8 @@
                 <th>Amount</th>
                 <th>Price</th>
                 <th>Price<br>+ Fees</th>
-                <!-- <th>Listing<br>Low Price</th> -->
-                <!-- <th>ROI</th> -->
+                <th>Listing<br>Low Price</th>
+                <th>ROI</th>
                 <th>Action</th>
                 <th>Expire<br>in</th>
                 <th>Full<br>Price</th>
@@ -64,8 +64,8 @@
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_amount">{{ event.amount }}</td> <!-- Amount -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price">{{ event.price }}</td> <!-- Price -->
                 <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle event_price_plus_fees">{{ event.price_plus_fees }}</td> <!-- Price + Fees -->
-                <!-- <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle listing_low_price">{{ event.listing_low_price }}</td> Listing Low Price -->
-                <!-- <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle roi">{{ event.roi }}</td> ROI -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle listing_low_price">{{ event.listing_low_price }}</td> <!-- Listing Low Price -->
+                <td data-bs-toggle="collapse" data-bs-target="#details_{{event.id}}" class="clickable px-0 py-0 align-middle roi">{{ event.roi if event.roi else 0 }}%</td> <!-- ROI -->
                 <td class="d-flex justify-content-center align-items-center gap-2 event_action">
                     {% if event.status == Event.STATUS_NEW and event.expire_at != "expired" %}
                     <button data-event-id="{{ event.id }}" class="btn btn-sm btn-success buy-ticket px-0 py-0">&nbsp;&nbsp;Buy&nbsp;&nbsp;</a>
@@ -79,7 +79,7 @@
             </tr>
 
             <tr class="collapse" id="details_{{ event.id }}">
-                <td colspan="10">
+                <td colspan="12">
                     &nbsp;&nbsp;&nbsp;&nbsp;Event ID: <span class="event_id">{{ event.event_id }}</span><br>
                     &nbsp;&nbsp;&nbsp;&nbsp;Checkout Link: <a href="{{ event.encsoft_url }}" target="_blank" class="event_encsoft_url">{{ event.encsoft_url }}</a><br>
                     &nbsp;&nbsp;&nbsp;&nbsp;CVV: <span class="event_cvv">{{ event.cvv }}</span>
@@ -174,8 +174,8 @@
                     $("#event_" + event.id + " .event_amount").html(event.amount);
                     $("#event_" + event.id + " .event_full_price").html(event.full_price);
                     $("#event_" + event.id + " .event_price_plus_fees").html(event.price_plus_fees);
-                    // $("#event_" + event.id + " .listing_low_price").html(event.listing_low_price);
-                    // $("#event_" + event.id + " .roi").html(event.roi);
+                    $("#event_" + event.id + " .listing_low_price").html(event.listing_low_price);
+                    $("#event_" + event.id + " .roi").html((event.roi || 0) + "%");
                     $("#event_" + event.id + " .event_expire_at").html(event.expire_at);
 
                     $("#details_" + event.id + " .event_id").html(event.event_id);
